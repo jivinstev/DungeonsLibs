@@ -20,7 +20,7 @@ import net.firefoxsalesman.dungeonslibs.items.interfaces.IUniqueGear;
 import net.firefoxsalesman.dungeonslibs.utils.DescriptionHelper;
 import net.firefoxsalesman.dungeonslibs.utils.ResourceLocationHelper;
 import net.firefoxsalesman.dungeonslibs.mixin.ArmorItemAccessor;
-import net.firefoxsalesman.dungeonslibs.mixin.ItemMaxDamage;
+import net.firefoxsalesman.dungeonslibs.utils.ItemMaxDamage;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;

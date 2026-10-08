@@ -9,7 +9,7 @@ import net.firefoxsalesman.dungeonslibs.items.interfaces.IReloadableGear;
 import net.firefoxsalesman.dungeonslibs.items.interfaces.IUniqueGear;
 import net.firefoxsalesman.dungeonslibs.utils.DescriptionHelper;
 import net.firefoxsalesman.dungeonslibs.mixin.CrossbowItemInvoker;
-import net.firefoxsalesman.dungeonslibs.mixin.ItemMaxDamage;
+import net.firefoxsalesman.dungeonslibs.utils.ItemMaxDamage;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;

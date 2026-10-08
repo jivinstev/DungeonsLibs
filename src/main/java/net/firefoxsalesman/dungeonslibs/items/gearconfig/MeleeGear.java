@@ -7,7 +7,7 @@ import net.firefoxsalesman.dungeonslibs.items.interfaces.IMeleeWeapon;
 import net.firefoxsalesman.dungeonslibs.items.interfaces.IReloadableGear;
 import net.firefoxsalesman.dungeonslibs.items.interfaces.IUniqueGear;
 import net.firefoxsalesman.dungeonslibs.utils.DescriptionHelper;
-import net.firefoxsalesman.dungeonslibs.mixin.ItemMaxDamage;
+import net.firefoxsalesman.dungeonslibs.utils.ItemMaxDamage;
 import net.firefoxsalesman.dungeonslibs.mixin.TieredItemAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;

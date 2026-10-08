@@ -20,7 +20,7 @@ import net.firefoxsalesman.dungeonslibs.items.artifacts.config.ArtifactGearConfi
 import net.firefoxsalesman.dungeonslibs.items.interfaces.IReloadableGear;
 import net.firefoxsalesman.dungeonslibs.utils.DescriptionHelper;
 import net.firefoxsalesman.dungeonslibs.mixin.CooldownAccessor;
-import net.firefoxsalesman.dungeonslibs.mixin.ItemMaxDamage;
+import net.firefoxsalesman.dungeonslibs.utils.ItemMaxDamage;
 import net.firefoxsalesman.dungeonslibs.mixin.ItemCooldownsAccessor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;

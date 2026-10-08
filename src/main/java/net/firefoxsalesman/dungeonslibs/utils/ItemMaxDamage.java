@@ -1,11 +1,16 @@
-package net.firefoxsalesman.dungeonslibs.mixin;
+package net.firefoxsalesman.dungeonslibs.utils;
+
+import net.firefoxsalesman.dungeonslibs.mixin.ItemAccessor;
 
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 
-/** Kept out of {@link ItemAccessor}: a mixin interface with a non-accessor method can't target a class. */
+/**
+ * Kept out of {@link ItemAccessor}: a mixin interface with a non-accessor method can't target a class. Also kept
+ * out of the mixin package: Mixin forbids direct references to any non-mixin class in a defined mixin package.
+ */
 public final class ItemMaxDamage {
 	private ItemMaxDamage() {
 	}
