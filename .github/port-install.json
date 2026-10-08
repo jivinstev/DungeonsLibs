@@ -9,8 +9,8 @@
       "role": "self",
       "modid": "dungeonslibs",
       "name": "dungeonslibs-1.4.0.jar",
-      "url": "https://github.com/jivinstev/DungeonsLibs/releases/download/dungeonslibs-1.4.0-mc1.21.1/dungeonslibs-1.4.0.jar",
-      "sha256": "f4fe55e14d3b92f8d06afb753edd08f51dc7574cd4c43cae5a5fccad20f3b949"
+      "url": "https://github.com/jivinstev/DungeonsLibs/releases/download/dungeonslibs-1.4.0-mc1.21.1-r2/dungeonslibs-1.4.0.jar",
+      "sha256": "77a5ecb27e57b72772a1db8ac1c2c1e312ee1b72f0cc9e1961748d4a98ade175"
     },
     {
       "role": "optional",
