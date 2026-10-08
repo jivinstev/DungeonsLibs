@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public class SwitchHandMessage implements CustomPacketPayload {
+public record SwitchHandMessage() implements CustomPacketPayload {
 	public static final CustomPacketPayload.Type<SwitchHandMessage> TYPE = new CustomPacketPayload.Type<>(
 			ResourceLocation.fromNamespaceAndPath(DungeonsLibs.MOD_ID, "switch_hand"));
 	public static final StreamCodec<FriendlyByteBuf, SwitchHandMessage> STREAM_CODEC = StreamCodec
