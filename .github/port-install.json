@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "port": "jivinstev/dungeonslibs",
+  "modid": "dungeonslibs",
+  "minecraft": "1.21.1",
+  "neoforge": "21.1.172",
+  "files": [
+    {
+      "role": "self",
+      "modid": "dungeonslibs",
+      "name": "dungeonslibs-1.4.0.jar",
+      "url": "https://github.com/jivinstev/DungeonsLibs/releases/download/dungeonslibs-1.4.0-mc1.21.1/dungeonslibs-1.4.0.jar",
+      "sha256": "f4fe55e14d3b92f8d06afb753edd08f51dc7574cd4c43cae5a5fccad20f3b949"
+    },
+    {
+      "role": "optional",
+      "modid": "goety",
+      "name": "goety-3.2.0.jar",
+      "url": "https://www.curseforge.com/api/v1/mods/586095/files/9044971/download",
+      "page": "https://www.curseforge.com/projects/586095",
+      "sha256": "edeeb623f626bc85bd26df6458dbb440fd4b044f34f3de78ee715cbc01e692d8"
+    },
+    {
+      "role": "required",
+      "modid": "curios",
+      "name": "curios-neoforge-9.5.1+1.21.1.jar",
+      "url": "https://cdn.modrinth.com/data/vvuO3ImH/versions/yohfFbgD/curios-neoforge-9.5.1%2B1.21.1.jar",
+      "page": "https://modrinth.com/mod/curios/version/yohfFbgD",
+      "sha256": "a45df2125c26219974aba7507ffc9afe7b83acc941a386af3faacb1cc0056fde"
+    },
+    {
+      "role": "required",
+      "modid": "geckolib",
+      "name": "geckolib-neoforge-1.21.1-4.7.1.jar",
+      "url": "https://cdn.modrinth.com/data/8BmcQJ2H/versions/OB5syBkW/geckolib-neoforge-1.21.1-4.7.1.jar",
+      "page": "https://modrinth.com/mod/geckolib/version/OB5syBkW",
+      "sha256": "caafe4beb7eb02650cfdbbf9ecc7fd025d3ad59d47dd02b2ef3a88b7adeadd64"
+    }
+  ]
+}
