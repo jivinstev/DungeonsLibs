@@ -1,7 +1,7 @@
 package net.firefoxsalesman.dungeonslibs.items.gearconfig;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Holder;
 
 import net.firefoxsalesman.dungeonslibs.event.CrossbowEvent;
 import net.firefoxsalesman.dungeonslibs.items.interfaces.IRangedWeapon;
@@ -9,33 +9,35 @@ import net.firefoxsalesman.dungeonslibs.items.interfaces.IReloadableGear;
 import net.firefoxsalesman.dungeonslibs.items.interfaces.IUniqueGear;
 import net.firefoxsalesman.dungeonslibs.utils.DescriptionHelper;
 import net.firefoxsalesman.dungeonslibs.mixin.CrossbowItemInvoker;
-import net.firefoxsalesman.dungeonslibs.mixin.ItemAccessor;
+import net.firefoxsalesman.dungeonslibs.mixin.ItemMaxDamage;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.UUID;
+import net.firefoxsalesman.dungeonslibs.ModHolders;
+import net.neoforged.neoforge.common.NeoForge;
 
-import static java.util.UUID.randomUUID;
 import static net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE;
 import static net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED;
-import static net.minecraftforge.registries.ForgeRegistries.ATTRIBUTES;
 
 public class CrossbowGear extends CrossbowItem implements IRangedWeapon, IReloadableGear, IUniqueGear {
-	private Multimap<Attribute, AttributeModifier> defaultModifiers;
+	private ItemAttributeModifiers defaultModifiers;
+	private int configuredDurability;
 	private BowGearConfig crossbowGearConfig;
 
 	public CrossbowGear(Properties builder) {
@@ -45,29 +47,43 @@ public class CrossbowGear extends CrossbowItem implements IRangedWeapon, IReload
 
 	@Override
 	public void reload() {
-		crossbowGearConfig = CrossbowGearConfigRegistry.getConfig(ForgeRegistries.ITEMS.getKey(this));
-		ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
-		crossbowGearConfig.getAttributes().forEach(attributeModifier -> {
-			Attribute attribute = ATTRIBUTES.getValue(attributeModifier.getAttributeResourceLocation());
+		crossbowGearConfig = CrossbowGearConfigRegistry.getConfig(BuiltInRegistries.ITEM.getKey(this));
+		ItemAttributeModifiers.Builder builder = ItemAttributeModifiers.builder();
+		int index = 0;
+		for (var attributeModifier : crossbowGearConfig.getAttributes()) {
+			Holder<Attribute> attribute = BuiltInRegistries.ATTRIBUTE.getHolder(attributeModifier.getAttributeResourceLocation()).orElse(null);
 			if (attribute != null) {
-				UUID uuid = randomUUID();
+				ResourceLocation modifierId;
 				if (ATTACK_DAMAGE.equals(attribute)) {
-					uuid = BASE_ATTACK_DAMAGE_UUID;
+					modifierId = Item.BASE_ATTACK_DAMAGE_ID;
 				} else if (ATTACK_SPEED.equals(attribute)) {
-					uuid = BASE_ATTACK_SPEED_UUID;
+					modifierId = Item.BASE_ATTACK_SPEED_ID;
+				} else {
+					modifierId = ResourceLocation.fromNamespaceAndPath("dungeonslibs", "crossbow." + index);
 				}
-				builder.put(attribute, new AttributeModifier(uuid, "Weapon modifier",
-						attributeModifier.getAmount(), attributeModifier.getOperation()));
+				builder.add(attribute, new AttributeModifier(modifierId,
+						attributeModifier.getAmount(), attributeModifier.getOperation()), EquipmentSlotGroup.MAINHAND);
 			}
-		});
+			index++;
+		}
 		defaultModifiers = builder.build();
-		((ItemAccessor) this).setMaxDamage(crossbowGearConfig.getDurability());
+		configuredDurability = crossbowGearConfig.getDurability();
+		ItemMaxDamage.setRarity(this, crossbowGearConfig.getRarity());
 	}
 
 	@Override
-	public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot pEquipmentSlot) {
-		return pEquipmentSlot == EquipmentSlot.MAINHAND ? defaultModifiers
-				: super.getDefaultAttributeModifiers(pEquipmentSlot);
+	public ItemAttributeModifiers getDefaultAttributeModifiers() {
+		return defaultModifiers;
+	}
+
+	@Override
+	public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+		return defaultModifiers;
+	}
+
+	@Override
+	public int getMaxDamage(ItemStack stack) {
+		return configuredDurability;
 	}
 
 	public float getDefaultChargeTime() {
@@ -77,14 +93,14 @@ public class CrossbowGear extends CrossbowItem implements IRangedWeapon, IReload
 	@Override
 	public void onUseTick(Level world, LivingEntity livingEntity, ItemStack stack, int timeLeft) {
 		if (!world.isClientSide) {
-			int quickChargeLevel = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.QUICK_CHARGE,
+			int quickChargeLevel = EnchantmentHelper.getItemEnchantmentLevel(ModHolders.enchantment(Enchantments.QUICK_CHARGE),
 					stack);
 
 			CrossbowItemInvoker crossbowItemInvoker = (CrossbowItemInvoker) this;
-			SoundEvent quickChargeSoundEvent = crossbowItemInvoker.callGetStartSound(quickChargeLevel);
-			SoundEvent loadingMiddleSoundEvent = quickChargeLevel == 0 ? SoundEvents.CROSSBOW_LOADING_MIDDLE
-					: null;
-			float chargeTime = (float) (stack.getUseDuration() - timeLeft)
+			CrossbowItem.ChargingSounds chargingSounds = crossbowItemInvoker.callGetChargingSounds(stack);
+			SoundEvent quickChargeSoundEvent = chargingSounds.start().map(Holder::value).orElse(null);
+			Holder<SoundEvent> loadingMiddleSoundEvent = chargingSounds.mid().orElse(null);
+			float chargeTime = (float) (stack.getUseDuration(livingEntity) - timeLeft)
 					/ getCrossbowChargeTime(livingEntity, stack);
 			if (chargeTime < 0.2F) {
 				crossbowItemInvoker.setStartSoundPlayed(false);
@@ -116,7 +132,7 @@ public class CrossbowGear extends CrossbowItem implements IRangedWeapon, IReload
 		// Do not refactor as a variable preceding this if statement
 		if (getCharge >= 1.0F && !isCharged(stack)
 				&& CrossbowItemInvoker.callTryLoadProjectiles(livingEntity, stack)) {
-			setCharged(stack, true);
+			// Charged state is set by tryLoadProjectiles via the CHARGED_PROJECTILES component in 1.21
 			SoundSource soundSource = livingEntity instanceof Player ? SoundSource.PLAYERS
 					: SoundSource.HOSTILE;
 			worldIn.playSound(null, livingEntity.getX(), livingEntity.getY(), livingEntity.getZ(),
@@ -137,22 +153,17 @@ public class CrossbowGear extends CrossbowItem implements IRangedWeapon, IReload
 	}
 
 	public float getCrossbowChargeTime(@Nullable LivingEntity livingEntity, ItemStack stack) {
-		int quickChargeLevel = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.QUICK_CHARGE, stack);
+		int quickChargeLevel = EnchantmentHelper.getItemEnchantmentLevel(ModHolders.enchantment(Enchantments.QUICK_CHARGE), stack);
 		float minTime = 1;
 		CrossbowEvent.ChargeTime event = new CrossbowEvent.ChargeTime(livingEntity, stack,
 				getDefaultChargeTime());
-		net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(event);
+		NeoForge.EVENT_BUS.post(event);
 		return Math.max(event.getChargeTime() - 5 * quickChargeLevel, minTime);
 	}
 
 	@Override
-	public int getUseDuration(ItemStack stack) {
+	public int getUseDuration(ItemStack stack, LivingEntity livingEntity) {
 		return (int) getCrossbowChargeTime(null, stack) + 3;
-	}
-
-	@Override
-	public Rarity getRarity(ItemStack pStack) {
-		return getGearConfig().getRarity();
 	}
 
 	@Override
@@ -170,7 +181,7 @@ public class CrossbowGear extends CrossbowItem implements IRangedWeapon, IReload
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Level world, List<Component> list, TooltipFlag flag) {
+	public void appendHoverText(ItemStack stack, Item.TooltipContext world, List<Component> list, TooltipFlag flag) {
 		super.appendHoverText(stack, world, list, flag);
 		DescriptionHelper.addFullDescription(list, stack);
 	}

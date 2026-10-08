@@ -6,7 +6,7 @@
 # The name of the mod loader type to load - for regular FML @Mod mods it should be javafml
 modLoader="javafml" #mandatory
 # A version range to match for said mod loader - for regular FML @Mod it will be the forge version
-loaderVersion="${loader_version_range}" #mandatory This is typically bumped every Minecraft version by Forge. See our download page for lists of versions.
+loaderVersion = "[4,)" #mandatory This is typically bumped every Minecraft version by Forge. See our download page for lists of versions.
 # The license for you mod. This is mandatory metadata and allows for easier comprehension of your redistributive properties.
 # Review your options at https://choosealicense.com/. All rights reserved is the default copyright stance, and is thus the default here.
 license="${mod_license}"
@@ -43,11 +43,11 @@ description='''${mod_description}'''
 # A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
 [[dependencies.${mod_id}]] #optional
     # the modid of the dependency
-    modId="forge" #mandatory
+    modId="neoforge" #mandatory
     # Does this dependency have to exist - if not, ordering below must be specified
-    mandatory=true #mandatory
+    type = "required" #mandatory
     # The version range of the dependency
-    versionRange="${forge_version_range}" #mandatory
+    versionRange="[21.1,)" #mandatory
     # An ordering relationship for the dependency - BEFORE or AFTER required if the dependency is not mandatory
     # BEFORE - This mod is loaded BEFORE the dependency
     # AFTER - This mod is loaded AFTER the dependency
@@ -56,7 +56,7 @@ description='''${mod_description}'''
     side="BOTH"
 [[dependencies.${mod_id}]] 
     modId="goety" 
-    mandatory=false 
+    type = "optional" 
     versionRange="[2.5.52.2,)" 
     ordering="AFTER"
     side="BOTH"
@@ -64,7 +64,7 @@ description='''${mod_description}'''
     # the modid of the dependency
     modId="curios" #mandatory
     # Does this dependency have to exist - if not, ordering below must be specified
-    mandatory=true #mandatory
+    type = "required" #mandatory
     # The version range of the dependency
     versionRange="[5.10.0+1.20.1,)" #mandatory
     # An ordering relationship for the dependency - BEFORE or AFTER required if the dependency is not mandatory
@@ -77,7 +77,7 @@ description='''${mod_description}'''
     # the modid of the dependency
     modId="geckolib" #mandatory
     # Does this dependency have to exist - if not, ordering below must be specified
-    mandatory=true #mandatory
+    type = "required" #mandatory
     # The version range of the dependency
     versionRange="[4.7,)" #mandatory
     # An ordering relationship for the dependency - BEFORE or AFTER required if the dependency is not mandatory
@@ -89,9 +89,9 @@ description='''${mod_description}'''
 # Here's another dependency
 [[dependencies.${mod_id}]]
     modId="minecraft"
-    mandatory=true
+    type = "required"
     # This version range declares a minimum of the current minecraft version up to but not including the next major version
-    versionRange="${minecraft_version_range}"
+    versionRange="[1.21.1,1.22)"
     ordering="NONE"
     side="BOTH"
 
@@ -100,3 +100,6 @@ description='''${mod_description}'''
 # stop your mod loading on the server for example.
 #[features.${mod_id}]
 #openGLVersion="[3.2,)"
+
+[[mixins]]
+config = "mixins.dungeonslibs.json"

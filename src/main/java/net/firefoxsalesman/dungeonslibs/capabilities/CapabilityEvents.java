@@ -10,24 +10,23 @@ import net.firefoxsalesman.dungeonslibs.capabilities.soulcaster.SoulCaster;
 import net.firefoxsalesman.dungeonslibs.capabilities.soulcaster.SoulCasterHelper;
 import net.firefoxsalesman.dungeonslibs.config.DungeonsLibrariesConfig;
 import net.firefoxsalesman.dungeonslibs.network.UpdateSoulsMessage;
-import net.firefoxsalesman.dungeonslibs.network.NetworkHandler;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
 
-@Mod.EventBusSubscriber(modid = DungeonsLibs.MOD_ID)
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+@EventBusSubscriber(modid = DungeonsLibs.MOD_ID)
 public class CapabilityEvents {
 
 	@SubscribeEvent
 	public static void onEntityJoinWorld(EntityJoinLevelEvent event) {
 		if (event.getEntity() instanceof ServerPlayer) {
-			NetworkHandler.INSTANCE
-					.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) event.getEntity()),
-							new UpdateSoulsMessage(
-									SoulCasterHelper.getSouls(event.getEntity())));
+			PacketDistributor.sendToPlayer((ServerPlayer) event.getEntity(),
+					new UpdateSoulsMessage(
+							SoulCasterHelper.getSouls(event.getEntity())));
 		}
 	}
 

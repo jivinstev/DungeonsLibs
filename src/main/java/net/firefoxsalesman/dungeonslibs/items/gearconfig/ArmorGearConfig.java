@@ -4,9 +4,10 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.firefoxsalesman.dungeonslibs.data.Codecs;
+import net.firefoxsalesman.dungeonslibs.data.EnchantmentData;
+import net.firefoxsalesman.dungeonslibs.items.materials.armor.DungeonsArmorMaterial;
 import net.firefoxsalesman.dungeonslibs.items.materials.armor.DungeonsArmorMaterials;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 
@@ -16,14 +17,14 @@ import java.util.List;
 public class ArmorGearConfig {
 
 	public static final ArmorGearConfig DEFAULT = new ArmorGearConfig(new ArrayList<>(), new ArrayList<>(),
-			new ResourceLocation("minecraft:iron"), false, Rarity.COMMON);
+			ResourceLocation.parse("minecraft:iron"), false, Rarity.COMMON);
 
 	public static final Codec<ArmorGearConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
 			GearConfigAttributeModifier.CODEC.listOf().optionalFieldOf("attributes", new ArrayList<>())
 					.forGetter(ArmorGearConfig::getAttributes),
 			Codecs.ENCHANTMENT_DATA_CODEC.listOf()
 					.optionalFieldOf("built_in_enchantments", new ArrayList<>())
-					.forGetter(ArmorGearConfig::getBuiltInEnchantments),
+					.forGetter(ArmorGearConfig::getBuiltInEnchantmentData),
 			ResourceLocation.CODEC.fieldOf("material")
 					.forGetter(armorGearConfig -> armorGearConfig.materialResource),
 			Codec.BOOL.optionalFieldOf("unique", false).forGetter(ArmorGearConfig::isUnique),
@@ -31,13 +32,13 @@ public class ArmorGearConfig {
 			.apply(instance, ArmorGearConfig::new));
 
 	private final List<GearConfigAttributeModifier> attributes;
-	private final List<EnchantmentInstance> builtInEnchantments;
+	private final List<EnchantmentData> builtInEnchantments;
 	private final ResourceLocation materialResource;
 	private final boolean unique;
 	private final Rarity rarity;
 
 	public ArmorGearConfig(List<GearConfigAttributeModifier> attributes,
-			List<EnchantmentInstance> builtInEnchantments, ResourceLocation materialResource,
+			List<EnchantmentData> builtInEnchantments, ResourceLocation materialResource,
 			boolean unique, Rarity rarity) {
 		this.attributes = attributes;
 		this.builtInEnchantments = builtInEnchantments;
@@ -50,11 +51,15 @@ public class ArmorGearConfig {
 		return attributes;
 	}
 
-	public List<EnchantmentInstance> getBuiltInEnchantments() {
+	public List<EnchantmentData> getBuiltInEnchantmentData() {
 		return builtInEnchantments;
 	}
 
-	public ArmorMaterial getArmorMaterial() {
+	public List<EnchantmentInstance> getBuiltInEnchantments() {
+		return Codecs.resolveEnchantments(builtInEnchantments);
+	}
+
+	public DungeonsArmorMaterial getArmorMaterial() {
 		return DungeonsArmorMaterials.getArmorMaterial(materialResource);
 	}
 

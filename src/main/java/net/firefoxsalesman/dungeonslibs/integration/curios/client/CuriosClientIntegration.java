@@ -5,21 +5,21 @@ import static net.firefoxsalesman.dungeonslibs.client.CuriosKeyBindings.activate
 import static net.firefoxsalesman.dungeonslibs.client.CuriosKeyBindings.activateArtifact3;
 
 import net.firefoxsalesman.dungeonslibs.DungeonsLibs;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
-import net.minecraftforge.client.settings.KeyConflictContext;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.settings.KeyConflictContext;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@Mod.EventBusSubscriber(modid = DungeonsLibs.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = DungeonsLibs.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
 public class CuriosClientIntegration {
 	@SubscribeEvent
 	public static void setupCuriosKeybindings(RegisterKeyMappingsEvent event) {
-		activateArtifact1.setKeyConflictContext(KeyConflictContext.IN_GAME);
+		activateArtifact1.setKeyConflictContext(KeyConflictContext.UNIVERSAL);
 		event.register(activateArtifact1);
-		activateArtifact2.setKeyConflictContext(KeyConflictContext.IN_GAME);
+		activateArtifact2.setKeyConflictContext(KeyConflictContext.UNIVERSAL);
 		event.register(activateArtifact2);
-		activateArtifact3.setKeyConflictContext(KeyConflictContext.IN_GAME);
+		activateArtifact3.setKeyConflictContext(KeyConflictContext.UNIVERSAL);
 		event.register(activateArtifact3);
 	}
 }

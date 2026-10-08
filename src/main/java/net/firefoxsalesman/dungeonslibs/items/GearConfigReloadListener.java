@@ -2,9 +2,9 @@ package net.firefoxsalesman.dungeonslibs.items;
 
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
-import net.minecraftforge.event.AddReloadListenerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import static net.firefoxsalesman.dungeonslibs.items.artifacts.config.ArtifactGearConfigRegistry.ARTIFACT_GEAR_CONFIGS;
 import static net.firefoxsalesman.dungeonslibs.items.gearconfig.ArmorGearConfigRegistry.ARMOR_GEAR_CONFIGS;
@@ -13,12 +13,12 @@ import static net.firefoxsalesman.dungeonslibs.items.gearconfig.BowGearConfigReg
 import static net.firefoxsalesman.dungeonslibs.items.gearconfig.CrossbowGearConfigRegistry.CROSSBOW_GEAR_CONFIGS;
 import static net.firefoxsalesman.dungeonslibs.items.gearconfig.MeleeGearConfigRegistry.MELEE_GEAR_CONFIGS;
 import static net.firefoxsalesman.dungeonslibs.items.materials.weapon.WeaponMaterials.WEAPON_MATERIALS;
-import static net.minecraftforge.registries.ForgeRegistries.ITEMS;
+import static net.minecraft.core.registries.BuiltInRegistries.ITEM;
 
 import net.firefoxsalesman.dungeonslibs.DungeonsLibs;
 import net.firefoxsalesman.dungeonslibs.items.interfaces.IReloadableGear;
 
-@Mod.EventBusSubscriber(modid = DungeonsLibs.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = DungeonsLibs.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public class GearConfigReloadListener implements ResourceManagerReloadListener {
 
 	@SubscribeEvent
@@ -39,7 +39,7 @@ public class GearConfigReloadListener implements ResourceManagerReloadListener {
 	}
 
 	public static void reloadAllItems() {
-		ITEMS.getEntries().stream().filter(
+		ITEM.entrySet().stream().filter(
 				registryKeyItemEntry -> registryKeyItemEntry.getValue() instanceof IReloadableGear)
 				.map(registryKeyItemEntry -> (IReloadableGear) registryKeyItemEntry.getValue())
 				.forEach(IReloadableGear::reload);

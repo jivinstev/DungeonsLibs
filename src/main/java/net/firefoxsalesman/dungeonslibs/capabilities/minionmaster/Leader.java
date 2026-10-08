@@ -1,7 +1,9 @@
 package net.firefoxsalesman.dungeonslibs.capabilities.minionmaster;
 
 import net.firefoxsalesman.dungeonslibs.summon.SummonConfigRegistry;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceKey;
@@ -11,9 +13,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.neoforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -45,7 +46,7 @@ public class Leader implements INBTSerializable<CompoundTag>, Master {
 	public int getSummonedMobsCost() {
 		return this.getSummonedMobs().stream()
 				.map(entity -> SummonConfigRegistry
-						.getConfig(ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()))
+						.getConfig(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()))
 						.getCost())
 				.reduce(0, Integer::sum);
 	}
@@ -107,7 +108,7 @@ public class Leader implements INBTSerializable<CompoundTag>, Master {
 	public static final String LEVEL_KEY = "level";
 
 	@Override
-	public CompoundTag serializeNBT() {
+	public CompoundTag serializeNBT(HolderLookup.Provider provider) {
 		CompoundTag nbt = new CompoundTag();
 		ListTag summoned = new ListTag();
 		this.getSummonedMobs().forEach(entity -> {
@@ -134,7 +135,7 @@ public class Leader implements INBTSerializable<CompoundTag>, Master {
 	}
 
 	@Override
-	public void deserializeNBT(CompoundTag tag) {
+	public void deserializeNBT(HolderLookup.Provider provider, CompoundTag tag) {
 		ListTag listNBT = tag.getList("summoned", 10);
 		List<UUID> summonedUUIDs = new ArrayList<>();
 		for (int i = 0; i < listNBT.size(); ++i) {
@@ -149,7 +150,7 @@ public class Leader implements INBTSerializable<CompoundTag>, Master {
 			minionUUIDs.add(compoundnbt.getUUID("uuid"));
 		}
 		if (tag.contains(LEVEL_KEY)) {
-			this.setLevelOnLoad(new ResourceLocation(tag.getString(LEVEL_KEY)));
+			this.setLevelOnLoad(ResourceLocation.parse(tag.getString(LEVEL_KEY)));
 		}
 	}
 

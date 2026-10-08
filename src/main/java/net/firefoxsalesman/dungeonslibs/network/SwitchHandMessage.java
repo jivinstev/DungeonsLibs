@@ -1,36 +1,33 @@
 package net.firefoxsalesman.dungeonslibs.network;
 
 import net.firefoxsalesman.dungeonslibs.combat.DualWieldHandler;
+import net.firefoxsalesman.dungeonslibs.DungeonsLibs;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
-
-public class SwitchHandMessage {
+public class SwitchHandMessage implements CustomPacketPayload {
+	public static final CustomPacketPayload.Type<SwitchHandMessage> TYPE = new CustomPacketPayload.Type<>(
+			ResourceLocation.fromNamespaceAndPath(DungeonsLibs.MOD_ID, "switch_hand"));
+	public static final StreamCodec<FriendlyByteBuf, SwitchHandMessage> STREAM_CODEC = StreamCodec
+			.unit(new SwitchHandMessage());
 
 	public SwitchHandMessage() {
 	}
 
-	public static void encode(SwitchHandMessage packet, FriendlyByteBuf buf) {
-
+	@Override
+	public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+		return TYPE;
 	}
 
-	public static SwitchHandMessage decode(FriendlyByteBuf buf) {
-		return new SwitchHandMessage();
-	}
-
-	public static class SwitchHandHandler {
-		public static void handle(SwitchHandMessage packet, Supplier<NetworkEvent.Context> ctx) {
-			if (packet != null) {
-				ctx.get().setPacketHandled(true);
-				ctx.get().enqueueWork(() -> {
-					ServerPlayer player = ctx.get().getSender();
-					if (player != null) {
-						DualWieldHandler.switchHand(player);
-					}
-				});
+	public void handle(IPayloadContext ctx) {
+		ctx.enqueueWork(() -> {
+			if (ctx.player() instanceof ServerPlayer player) {
+				DualWieldHandler.switchHand(player);
 			}
-		}
+		});
 	}
 }

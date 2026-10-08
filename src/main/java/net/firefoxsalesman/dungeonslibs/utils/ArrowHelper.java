@@ -16,11 +16,12 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.minecraft.core.Holder;
 
-@Mod.EventBusSubscriber(modid = DungeonsLibs.MOD_ID)
+@EventBusSubscriber(modid = DungeonsLibs.MOD_ID)
 public class ArrowHelper {
 
 	@SubscribeEvent
@@ -50,11 +51,11 @@ public class ArrowHelper {
 		addEnchantmentTagsToArrow(stack, arrowEntity);
 	}
 
-	public static boolean hasEnchantment(ItemStack stack, Enchantment enchantment) {
+	public static boolean hasEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
 		return enchantment != null && EnchantmentHelper.getItemEnchantmentLevel(enchantment, stack) > 0;
 	}
 
-	public static boolean hasEnchantment(LivingEntity entity, Enchantment enchantment) {
+	public static boolean hasEnchantment(LivingEntity entity, Holder<Enchantment> enchantment) {
 		return enchantment != null && EnchantmentHelper.getEnchantmentLevel(enchantment, entity) > 0;
 	}
 
@@ -84,12 +85,12 @@ public class ArrowHelper {
 		cap.setEnchantments(itemStack);
 	}
 
-	public static int enchantmentTagToLevel(Projectile projectileEntity, Enchantment enchantment) {
+	public static int enchantmentTagToLevel(Projectile projectileEntity, Holder<Enchantment> enchantment) {
 		EnchantedProjectile cap = EnchantedProjectileHelper.getEnchantedProjectileCapability(projectileEntity);
 		return cap.getEnchantmentLevel(enchantment);
 	}
 
 	public static boolean wasHitByArrow(DamageSource source) {
-		return source.isIndirect() && source.getDirectEntity() instanceof AbstractArrow;
+		return source.getDirectEntity() != source.getEntity() && source.getDirectEntity() instanceof AbstractArrow;
 	}
 }

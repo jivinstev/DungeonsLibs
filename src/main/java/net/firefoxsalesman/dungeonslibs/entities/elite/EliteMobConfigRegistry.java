@@ -1,22 +1,24 @@
 package net.firefoxsalesman.dungeonslibs.entities.elite;
 
-import net.firefoxsalesman.dungeonslibs.DungeonsLibs;
 import net.firefoxsalesman.dungeonslibs.data.util.MergeableCodecDataManager;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.random.WeightedRandom;
-import net.minecraftforge.event.AddReloadListenerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.common.NeoForge;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Mod.EventBusSubscriber(modid = DungeonsLibs.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class EliteMobConfigRegistry {
 	public static final MergeableCodecDataManager<EliteMobConfigList, List<EliteMobConfig>> ELITE_MOB_CONFIGS = new MergeableCodecDataManager<>(
 			"elite_mob", EliteMobConfigList.CODEC, EliteMobConfigRegistry::eliteMobMerger);
+
+	static {
+		NeoForge.EVENT_BUS.addListener(EliteMobConfigRegistry::onAddReloadListeners);
+	}
 
 	public static List<EliteMobConfig> eliteMobMerger(List<EliteMobConfigList> raws) {
 		return raws.stream().flatMap(rawList -> rawList.getConfigs().stream()).collect(Collectors.toList());

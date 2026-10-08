@@ -1,50 +1,38 @@
 package net.firefoxsalesman.dungeonslibs.capabilities.minionmaster;
 
-import org.jetbrains.annotations.NotNull;
+import java.util.Optional;
 
 import net.firefoxsalesman.dungeonslibs.capabilities.LibCapabilities;
-import net.firefoxsalesman.dungeonslibs.utils.ResourceLocationHelper;
-import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.attachment.IAttachmentHolder;
+import net.neoforged.neoforge.attachment.IAttachmentSerializer;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 public class AttacherLeader {
 
-	private static class LeaderProvider implements ICapabilityProvider, INBTSerializable<CompoundTag> {
+	public static final DeferredHolder<AttachmentType<?>, AttachmentType<Leader>> LEADER = LibCapabilities.ATTACHMENTS.register("master", () -> AttachmentType.builder(() -> new Leader()).serialize(new LeaderSerializer()).build());
 
-		public static final ResourceLocation IDENTIFIER = ResourceLocationHelper.modLoc("master");
-		private final Leader backend = new Leader();
-		private final LazyOptional<Leader> optionalData = LazyOptional.of(() -> backend);
+	private static final class LeaderSerializer implements IAttachmentSerializer<CompoundTag, Leader> {
 
 		@Override
-		public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, Direction side) {
-			return LibCapabilities.LEADER_CAPABILITY.orEmpty(cap, this.optionalData);
+		public Leader read(IAttachmentHolder holder, CompoundTag tag, HolderLookup.Provider provider) {
+			Leader leader = new Leader();
+			leader.deserializeNBT(provider, tag);
+			return leader;
 		}
 
 		@Override
-		public CompoundTag serializeNBT() {
-			return this.backend.serializeNBT();
-		}
-
-		@Override
-		public void deserializeNBT(CompoundTag nbt) {
-			this.backend.deserializeNBT(nbt);
+		public CompoundTag write(Leader attachment, HolderLookup.Provider provider) {
+			return attachment.serializeNBT(provider);
 		}
 	}
 
-	// attach only to living entities
-	public static void attach(final AttachCapabilitiesEvent<Entity> event) {
-		Entity entity = event.getObject();
-		if (entity instanceof LivingEntity) {
-			final LeaderProvider provider = new LeaderProvider();
-			event.addCapability(LeaderProvider.IDENTIFIER, provider);
-		}
+	// only living entities carry the leader data
+	public static Optional<Leader> get(Entity entity) {
+		return entity instanceof LivingEntity ? Optional.of(entity.getData(LEADER.get())) : Optional.empty();
 	}
 }

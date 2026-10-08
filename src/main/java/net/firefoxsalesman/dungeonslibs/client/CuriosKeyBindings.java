@@ -4,24 +4,24 @@ import net.firefoxsalesman.dungeonslibs.DungeonsLibs;
 import net.firefoxsalesman.dungeonslibs.integration.curios.client.message.CuriosArtifactStartMessage;
 import net.firefoxsalesman.dungeonslibs.items.artifacts.ArtifactItem;
 import net.firefoxsalesman.dungeonslibs.items.artifacts.ArtifactUseContext;
-import net.firefoxsalesman.dungeonslibs.network.NetworkHandler;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.*;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.client.event.InputEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.lwjgl.glfw.GLFW;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler;
 
 import java.util.Optional;
 
-@Mod.EventBusSubscriber(modid = DungeonsLibs.MOD_ID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = DungeonsLibs.MOD_ID, value = Dist.CLIENT)
 public class CuriosKeyBindings {
 
 	public static final KeyMapping activateArtifact1 = new KeyMapping(
@@ -68,7 +68,7 @@ public class CuriosKeyBindings {
 	}
 
 	private static void curiosStartMessage(int slot, BlockHitResult blockHitResult, LocalPlayer player) {
-		NetworkHandler.INSTANCE.sendToServer(new CuriosArtifactStartMessage(slot, blockHitResult));
+		PacketDistributor.sendToServer(new CuriosArtifactStartMessage(slot, blockHitResult));
 		CuriosApi.getCuriosInventory(player).ifPresent(iCuriosItemHandler -> {
 			Optional<ICurioStacksHandler> artifactStackHandler = iCuriosItemHandler
 					.getStacksHandler("artifact");

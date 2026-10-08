@@ -1,49 +1,47 @@
 package net.firefoxsalesman.dungeonslibs.capabilities.artifact;
 
-import net.firefoxsalesman.dungeonslibs.capabilities.LibCapabilities;
-import net.firefoxsalesman.dungeonslibs.utils.ResourceLocationHelper;
-import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.event.AttachCapabilitiesEvent;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.core.HolderLookup;
+import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.attachment.IAttachmentHolder;
+import net.neoforged.neoforge.attachment.IAttachmentSerializer;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
+import java.util.Optional;
 
 public class AttacherArtifactUsage {
 
-	private static class ArtifactUsageProvider implements ICapabilityProvider, INBTSerializable<CompoundTag> {
+	public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES =
+			DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, "dungeonslibs");
 
-		public static final ResourceLocation IDENTIFIER = ResourceLocationHelper.modLoc("artifact_usage");
-		private final ArtifactUsage backend = new ArtifactUsage();
-		private final LazyOptional<ArtifactUsage> optionalData = LazyOptional.of(() -> backend);
-
+	private static final IAttachmentSerializer<CompoundTag, ArtifactUsage> SERIALIZER = new IAttachmentSerializer<>() {
 		@Override
-		public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, Direction side) {
-			return LibCapabilities.ARTIFACT_USAGE_CAPABILITY.orEmpty(cap, this.optionalData);
+		public ArtifactUsage read(IAttachmentHolder holder, CompoundTag tag, HolderLookup.Provider provider) {
+			ArtifactUsage usage = new ArtifactUsage();
+			usage.deserializeNBT(provider, tag);
+			return usage;
 		}
 
 		@Override
-		public CompoundTag serializeNBT() {
-			return this.backend.serializeNBT();
+		public CompoundTag write(ArtifactUsage usage, HolderLookup.Provider provider) {
+			return usage.serializeNBT(provider);
 		}
+	};
 
-		@Override
-		public void deserializeNBT(CompoundTag nbt) {
-			this.backend.deserializeNBT(nbt);
-		}
-	}
+	public static final DeferredHolder<AttachmentType<?>, AttachmentType<ArtifactUsage>> ARTIFACT_USAGE =
+			ATTACHMENT_TYPES.register("artifact_usage",
+					() -> AttachmentType.builder(() -> new ArtifactUsage())
+							.serialize(SERIALIZER)
+							.build());
 
-	// attach only to living entities
-	public static void attach(final AttachCapabilitiesEvent<Entity> event) {
-		Entity entity = event.getObject();
+	// only players carry artifact usage; other holders yield empty
+	public static Optional<ArtifactUsage> get(Entity entity) {
 		if (entity instanceof Player) {
-			final ArtifactUsageProvider provider = new ArtifactUsageProvider();
-			event.addCapability(ArtifactUsageProvider.IDENTIFIER, provider);
+			return Optional.of(entity.getData(ARTIFACT_USAGE.get()));
 		}
+		return Optional.empty();
 	}
 }

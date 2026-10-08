@@ -7,16 +7,25 @@ import net.firefoxsalesman.dungeonslibs.items.gearconfig.CrossbowGearConfigRegis
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Supplier;
 
 import static net.firefoxsalesman.dungeonslibs.items.GearConfigReloadListener.reloadAllItems;
 
-public class CrossbowGearConfigSyncPacket {
+public class CrossbowGearConfigSyncPacket implements CustomPacketPayload {
+	public static final CustomPacketPayload.Type<CrossbowGearConfigSyncPacket> TYPE = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("dungeonslibs", "crossbow_gear_config_sync"));
+	public static final StreamCodec<FriendlyByteBuf, CrossbowGearConfigSyncPacket> STREAM_CODEC = StreamCodec.ofMember(CrossbowGearConfigSyncPacket::encode, CrossbowGearConfigSyncPacket::decode);
+
+	@Override
+	public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+		return TYPE;
+	}
+
 	private static final Codec<Map<ResourceLocation, BowGearConfig>> MAPPER = Codec
 			.unboundedMap(ResourceLocation.CODEC, BowGearConfig.CODEC);
 
@@ -36,10 +45,8 @@ public class CrossbowGearConfigSyncPacket {
 				MAPPER.parse(NbtOps.INSTANCE, buffer.readNbt()).result().orElse(new HashMap<>()));
 	}
 
-	public void onPacketReceived(Supplier<NetworkEvent.Context> contextGetter) {
-		NetworkEvent.Context context = contextGetter.get();
+	public void handle(IPayloadContext context) {
 		context.enqueueWork(this::handlePacketOnMainThread);
-		context.setPacketHandled(true);
 	}
 
 	private void handlePacketOnMainThread() {

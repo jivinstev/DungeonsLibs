@@ -1,5 +1,6 @@
 package net.firefoxsalesman.dungeonslibs.combat;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.firefoxsalesman.dungeonslibs.DungeonsLibs;
 import net.firefoxsalesman.dungeonslibs.config.DungeonsLibrariesConfig;
 import net.firefoxsalesman.dungeonslibs.items.gearconfig.MeleeGearConfig;
@@ -7,12 +8,11 @@ import net.firefoxsalesman.dungeonslibs.items.gearconfig.MeleeGearConfigRegistry
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.entity.living.LivingEquipmentChangeEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.event.entity.living.LivingEquipmentChangeEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@Mod.EventBusSubscriber(modid = DungeonsLibs.MOD_ID)
+@EventBusSubscriber(modid = DungeonsLibs.MOD_ID)
 public class TwoHandedHandler {
 
 	@SubscribeEvent
@@ -20,7 +20,7 @@ public class TwoHandedHandler {
 		if (!DungeonsLibrariesConfig.ENABLE_TWO_HANDED_WEAPON.get())
 			return;
 		MeleeGearConfig configTo = MeleeGearConfigRegistry
-				.getConfig(ForgeRegistries.ITEMS.getKey(event.getTo().getItem()));
+				.getConfig(BuiltInRegistries.ITEM.getKey(event.getTo().getItem()));
 		if (configTo.isTwoHanded()) {
 			if (event.getSlot().equals(EquipmentSlot.MAINHAND)) {
 				ItemStack offhandItem = event.getEntity().getOffhandItem();
@@ -40,7 +40,7 @@ public class TwoHandedHandler {
 		} else if (!event.getTo().isEmpty()) {
 			ItemStack mainhandItem = event.getEntity().getMainHandItem();
 			MeleeGearConfig configMainHand = MeleeGearConfigRegistry
-					.getConfig(ForgeRegistries.ITEMS.getKey(mainhandItem.getItem()));
+					.getConfig(BuiltInRegistries.ITEM.getKey(mainhandItem.getItem()));
 			if (configMainHand.isTwoHanded() && event.getSlot().equals(EquipmentSlot.OFFHAND)) {
 				event.getEntity().setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
 				event.getEntity().spawnAtLocation(mainhandItem);

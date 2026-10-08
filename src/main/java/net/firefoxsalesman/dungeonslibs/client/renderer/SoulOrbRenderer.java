@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 
-import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 import net.firefoxsalesman.dungeonslibs.entities.SoulOrbEntity;
@@ -51,20 +50,19 @@ public class SoulOrbRenderer extends EntityRenderer<SoulOrbEntity> {
 		VertexConsumer ivertexbuilder = pBuffer.getBuffer(RENDER_TYPE);
 		PoseStack.Pose matrixstack$entry = pMatrixStack.last();
 		Matrix4f matrix4f = matrixstack$entry.pose();
-		Matrix3f matrix3f = matrixstack$entry.normal();
-		vertex(ivertexbuilder, matrix4f, matrix3f, -0.5F, -0.25F, j, l, 255, f, f3, pPackedLight);
-		vertex(ivertexbuilder, matrix4f, matrix3f, 0.5F, -0.25F, j, l, 255, f1, f3, pPackedLight);
-		vertex(ivertexbuilder, matrix4f, matrix3f, 0.5F, 0.75F, j, l, 255, f1, f2, pPackedLight);
-		vertex(ivertexbuilder, matrix4f, matrix3f, -0.5F, 0.75F, j, l, 255, f, f2, pPackedLight);
+		vertex(ivertexbuilder, matrix4f, matrixstack$entry, -0.5F, -0.25F, j, l, 255, f, f3, pPackedLight);
+		vertex(ivertexbuilder, matrix4f, matrixstack$entry, 0.5F, -0.25F, j, l, 255, f1, f3, pPackedLight);
+		vertex(ivertexbuilder, matrix4f, matrixstack$entry, 0.5F, 0.75F, j, l, 255, f1, f2, pPackedLight);
+		vertex(ivertexbuilder, matrix4f, matrixstack$entry, -0.5F, 0.75F, j, l, 255, f, f2, pPackedLight);
 		pMatrixStack.popPose();
 		super.render(pEntity, pEntityYaw, pPartialTicks, pMatrixStack, pBuffer, pPackedLight);
 	}
 
-	private static void vertex(VertexConsumer pBuffer, Matrix4f pMatrix, Matrix3f pMatrixNormal, float pX, float pY,
+	private static void vertex(VertexConsumer pBuffer, Matrix4f pMatrix, PoseStack.Pose pPose, float pX, float pY,
 			int pRed, int pGreen, int pBlue, float pTexU, float pTexV, int pPackedLight) {
-		pBuffer.vertex(pMatrix, pX, pY, 0.0F).color(pRed, pGreen, pBlue, 128).uv(pTexU, pTexV)
-				.overlayCoords(OverlayTexture.NO_OVERLAY).uv2(pPackedLight)
-				.normal(pMatrixNormal, 0.0F, 1.0F, 0.0F).endVertex();
+		pBuffer.addVertex(pMatrix, pX, pY, 0.0F).setColor(pRed, pGreen, pBlue, 128).setUv(pTexU, pTexV)
+				.setOverlay(OverlayTexture.NO_OVERLAY).setLight(pPackedLight)
+				.setNormal(pPose, 0.0F, 1.0F, 0.0F);
 	}
 
 	/**

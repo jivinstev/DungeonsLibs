@@ -2,7 +2,6 @@ package net.firefoxsalesman.dungeonslibs.items.materials.weapon;
 
 import net.firefoxsalesman.dungeonslibs.data.util.DefaultsCodecJsonDataManager;
 import net.firefoxsalesman.dungeonslibs.network.materials.WeaponMaterialSyncPacket;
-import net.firefoxsalesman.dungeonslibs.network.NetworkHandler;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Tier;
 
@@ -17,12 +16,12 @@ public class WeaponMaterials {
 			"material/weapon", DungeonsWeaponMaterial.CODEC);
 
 	public static void setupVanillaMaterials() {
-		WEAPON_MATERIALS.addDefault(new ResourceLocation("minecraft:wood"), WOOD);
-		WEAPON_MATERIALS.addDefault(new ResourceLocation("minecraft:stone"), STONE);
-		WEAPON_MATERIALS.addDefault(new ResourceLocation("minecraft:iron"), IRON);
-		WEAPON_MATERIALS.addDefault(new ResourceLocation("minecraft:diamond"), DIAMOND);
-		WEAPON_MATERIALS.addDefault(new ResourceLocation("minecraft:gold"), GOLD);
-		WEAPON_MATERIALS.addDefault(new ResourceLocation("minecraft:netherite"), NETHERITE);
+		WEAPON_MATERIALS.addDefault(ResourceLocation.parse("minecraft:wood"), WOOD);
+		WEAPON_MATERIALS.addDefault(ResourceLocation.parse("minecraft:stone"), STONE);
+		WEAPON_MATERIALS.addDefault(ResourceLocation.parse("minecraft:iron"), IRON);
+		WEAPON_MATERIALS.addDefault(ResourceLocation.parse("minecraft:diamond"), DIAMOND);
+		WEAPON_MATERIALS.addDefault(ResourceLocation.parse("minecraft:gold"), GOLD);
+		WEAPON_MATERIALS.addDefault(ResourceLocation.parse("minecraft:netherite"), NETHERITE);
 	}
 
 	public static Tier getWeaponMaterial(ResourceLocation resourceLocation) {
@@ -42,6 +41,6 @@ public class WeaponMaterials {
 	}
 
 	public static void subscribe() {
-		WEAPON_MATERIALS.subscribeAsSyncable(NetworkHandler.INSTANCE, WeaponMaterials::toPacket);
+		WEAPON_MATERIALS.subscribeAsSyncable(WeaponMaterials::toPacket);
 	}
 }

@@ -1,10 +1,11 @@
 package net.firefoxsalesman.dungeonslibs.capabilities.playerrewards;
 
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.common.util.INBTSerializable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,7 +52,7 @@ public class PlayerRewards implements INBTSerializable<CompoundTag> {
 	}
 
 	@Override
-	public CompoundTag serializeNBT() {
+	public CompoundTag serializeNBT(HolderLookup.Provider provider) {
 		CompoundTag nbt = new CompoundTag();
 		Map<ResourceLocation, Integer> rewards = this.getAllPlayerRewards();
 		ListTag listNBT = new ListTag();
@@ -66,12 +67,12 @@ public class PlayerRewards implements INBTSerializable<CompoundTag> {
 	}
 
 	@Override
-	public void deserializeNBT(CompoundTag tag) {
+	public void deserializeNBT(HolderLookup.Provider provider, CompoundTag tag) {
 		ListTag listNBT = tag.getList("rewards", 10);
 		for (Tag inbt : listNBT) {
 			if (inbt instanceof CompoundTag) {
 				CompoundTag compoundNBT1 = (CompoundTag) inbt;
-				ResourceLocation resourceLocation = new ResourceLocation(
+				ResourceLocation resourceLocation = ResourceLocation.parse(
 						compoundNBT1.getString("source"));
 				Integer amount = compoundNBT1.getInt("amount");
 				this.setPlayerRewards(resourceLocation, amount);

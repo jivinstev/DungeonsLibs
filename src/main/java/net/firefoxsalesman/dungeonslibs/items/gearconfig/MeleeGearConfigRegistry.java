@@ -5,7 +5,6 @@ import java.util.Map;
 import net.firefoxsalesman.dungeonslibs.data.util.CodecJsonDataManager;
 import net.firefoxsalesman.dungeonslibs.network.gearconfig.MeleeGearConfigSyncPacket;
 import net.firefoxsalesman.dungeonslibs.utils.ResourceLocationHelper;
-import net.firefoxsalesman.dungeonslibs.network.NetworkHandler;
 import net.minecraft.resources.ResourceLocation;
 
 public class MeleeGearConfigRegistry {
@@ -28,6 +27,6 @@ public class MeleeGearConfigRegistry {
 	}
 
 	public static void subscribe() {
-		MELEE_GEAR_CONFIGS.subscribeAsSyncable(NetworkHandler.INSTANCE, MeleeGearConfigRegistry::toPacket);
+		MELEE_GEAR_CONFIGS.subscribeAsSyncable(MeleeGearConfigRegistry::toPacket);
 	}
 }

@@ -12,6 +12,7 @@ public class MojankHelper {
 	 * Try undoing in 1.18
 	 */
 	public static void hurtEnemyBroadcastBreakEvent(LivingEntity livingEntity) {
-		livingEntity.broadcastBreakEvent(EquipmentSlot.MAINHAND);
+		livingEntity.onEquippedItemBroken(livingEntity.getItemBySlot(EquipmentSlot.MAINHAND).getItem(),
+				EquipmentSlot.MAINHAND);
 	}
 }

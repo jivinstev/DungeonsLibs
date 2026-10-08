@@ -1,11 +1,9 @@
 {
   "required": true,
   "package": "net.firefoxsalesman.dungeonslibs.mixin",
-  "compatibilityLevel": "JAVA_17",
+  "compatibilityLevel": "JAVA_21",
   "minVersion": "0.8.4",
-  "refmap": "mixins.dungeonslibs.refmap.json",
   "mixins": [
-    "AbstractSkeletonMixin",
     "ArmorItemAccessor",
     "AxeItemAccessor",
     "BeeMixin",
@@ -15,7 +13,6 @@
     "CrossbowItemInvoker",
     "CrossbowItemMixin",
     "EnchantmentHelperMixin",
-    "GeoEntityRendererMixin",
     "ItemAccessor",
     "ItemCooldownsAccessor",
     "LivingEntityAccessor",
@@ -24,10 +21,12 @@
     "NearestAttackableTargetGoalAccessor",
     "PiglinMixin",
     "TargetingConditionsAccessor",
-    "TieredItemAccessor"
+    "TieredItemAccessor",
+    "AbstractArrowAccessor"
   ],
   "client": [
     "AbstractClientPlayerMixin",
+    "GeoEntityRendererMixin",
     "ItemInHandRendererMixin",
     "LivingRendererMixin",
     "MinecraftMixin",

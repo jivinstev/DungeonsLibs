@@ -1,49 +1,41 @@
 package net.firefoxsalesman.dungeonslibs.capabilities.enchantedprojectile;
 
-import org.jetbrains.annotations.NotNull;
+import java.util.Optional;
 
-import net.firefoxsalesman.dungeonslibs.capabilities.LibCapabilities;
-import net.firefoxsalesman.dungeonslibs.utils.ResourceLocationHelper;
-import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.attachment.IAttachmentHolder;
+import net.neoforged.neoforge.attachment.IAttachmentSerializer;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 public class AttacherEnchantedProjectile {
 
-	private static class EnchantedProjectileProvider implements ICapabilityProvider, INBTSerializable<CompoundTag> {
+	public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES = DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, "dungeonslibs");
 
-		public static final ResourceLocation IDENTIFIER = ResourceLocationHelper.modLoc("enchanted_projectile");
-		private final EnchantedProjectile backend = new EnchantedProjectile();
-		private final LazyOptional<EnchantedProjectile> optionalData = LazyOptional.of(() -> backend);
+	public static final DeferredHolder<AttachmentType<?>, AttachmentType<EnchantedProjectile>> ENCHANTED_PROJECTILE = ATTACHMENT_TYPES.register("enchanted_projectile",
+			() -> AttachmentType.builder(EnchantedProjectile::new)
+					.serialize(new IAttachmentSerializer<CompoundTag, EnchantedProjectile>() {
+						@Override
+						public EnchantedProjectile read(IAttachmentHolder holder, CompoundTag tag, HolderLookup.Provider provider) {
+							EnchantedProjectile data = new EnchantedProjectile();
+							data.deserializeNBT(provider, tag);
+							return data;
+						}
 
-		@Override
-		public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, Direction side) {
-			return LibCapabilities.ENCHANTED_PROJECTILE_CAPABILITY.orEmpty(cap, this.optionalData);
-		}
+						@Override
+						public CompoundTag write(EnchantedProjectile data, HolderLookup.Provider provider) {
+							return data.serializeNBT(provider);
+						}
+					})
+					.build());
 
-		@Override
-		public CompoundTag serializeNBT() {
-			return this.backend.serializeNBT();
-		}
-
-		@Override
-		public void deserializeNBT(CompoundTag nbt) {
-			this.backend.deserializeNBT(nbt);
-		}
-	}
-
-	public static void attach(final AttachCapabilitiesEvent<Entity> event) {
-		if (event.getObject() instanceof Projectile) {
-			final AttacherEnchantedProjectile.EnchantedProjectileProvider provider = new AttacherEnchantedProjectile.EnchantedProjectileProvider();
-			event.addCapability(AttacherEnchantedProjectile.EnchantedProjectileProvider.IDENTIFIER,
-					provider);
-		}
+	/** Attachments attach lazily, so the Projectile gate lives here instead of in an attach event. */
+	public static Optional<EnchantedProjectile> get(Entity entity) {
+		return entity instanceof Projectile ? Optional.of(entity.getData(ENCHANTED_PROJECTILE.get())) : Optional.empty();
 	}
 }

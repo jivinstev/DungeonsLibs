@@ -7,9 +7,10 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FastColor;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import software.bernie.geckolib.animatable.GeoEntity;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.renderer.GeoRenderer;
@@ -37,7 +38,7 @@ public class GeoEyeLayer<T extends LivingEntity & GeoEntity> extends AutoGlowing
 		RenderType emmissiveRenderType = getRenderType(animatable);
 		getRenderer().reRender(bakedModel, poseStack, bufferSource, animatable, emmissiveRenderType,
 				bufferSource.getBuffer(emmissiveRenderType), partialTick, 15728640,
-				OverlayTexture.NO_OVERLAY, .8F, .8F, .8F, 1.0F);
+				OverlayTexture.NO_OVERLAY, FastColor.ARGB32.colorFromFloat(1.0F, .8F, .8F, .8F));
 	}
 
 	@Override

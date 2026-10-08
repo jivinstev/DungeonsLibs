@@ -1,25 +1,26 @@
 package net.firefoxsalesman.dungeonslibs.attribute;
 
+import net.minecraft.core.registries.BuiltInRegistries;
+
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import static net.firefoxsalesman.dungeonslibs.DungeonsLibs.MOD_ID;
 
 public class AttributeRegistry {
 
 	private static final DeferredRegister<Attribute> ATTRIBUTES = DeferredRegister.create(
-			ForgeRegistries.ATTRIBUTES,
+			BuiltInRegistries.ATTRIBUTE,
 			MOD_ID);
 
 	/**
 	 * @deprecated To be renamed FOLLOWER_COST_LIMIT in 1.20.0
 	 */
 	@Deprecated
-	public static final RegistryObject<Attribute> SUMMON_CAP = ATTRIBUTES.register("summon_cap",
+	public static final DeferredHolder<Attribute, Attribute> SUMMON_CAP = ATTRIBUTES.register("summon_cap",
 			() -> new RangedAttribute(
 					"attribute.name.generic." + MOD_ID + ".summon_cap",
 					0.0D,
@@ -27,7 +28,7 @@ public class AttributeRegistry {
 					1024.0D)
 					.setSyncable(true));
 
-	public static final RegistryObject<Attribute> FOLLOWER_COST_LIMIT = ATTRIBUTES.register("follower_cost_limit",
+	public static final DeferredHolder<Attribute, Attribute> FOLLOWER_COST_LIMIT = ATTRIBUTES.register("follower_cost_limit",
 			() -> new RangedAttribute(
 					"attribute.name.generic." + MOD_ID + ".follower_cost_limit",
 					24.0D,
@@ -35,7 +36,7 @@ public class AttributeRegistry {
 					1024.0D)
 					.setSyncable(true));
 
-	public static final RegistryObject<Attribute> SOUL_GATHERING = ATTRIBUTES.register("soul_gathering",
+	public static final DeferredHolder<Attribute, Attribute> SOUL_GATHERING = ATTRIBUTES.register("soul_gathering",
 			() -> new RangedAttribute(
 					"attribute.name.generic." + MOD_ID + ".soul_gathering",
 					0.0D,
@@ -43,7 +44,7 @@ public class AttributeRegistry {
 					1024.0D)
 					.setSyncable(true));
 
-	public static final RegistryObject<Attribute> SOUL_CAP = ATTRIBUTES.register("soul_cap",
+	public static final DeferredHolder<Attribute, Attribute> SOUL_CAP = ATTRIBUTES.register("soul_cap",
 			() -> new RangedAttribute(
 					"attribute.name.generic." + MOD_ID + ".soul_cap",
 					300.0D,
@@ -51,7 +52,7 @@ public class AttributeRegistry {
 					1024.0D)
 					.setSyncable(true));
 
-	public static final RegistryObject<Attribute> LIFE_STEAL = ATTRIBUTES.register("life_steal",
+	public static final DeferredHolder<Attribute, Attribute> LIFE_STEAL = ATTRIBUTES.register("life_steal",
 			() -> new RangedAttribute(
 					"attribute.name.generic." + MOD_ID + ".life_steal",
 					1.0D,
@@ -59,7 +60,7 @@ public class AttributeRegistry {
 					1024.0D)
 					.setSyncable(true));
 
-	public static final RegistryObject<Attribute> RANGED_DAMAGE_MULTIPLIER = ATTRIBUTES
+	public static final DeferredHolder<Attribute, Attribute> RANGED_DAMAGE_MULTIPLIER = ATTRIBUTES
 			.register("ranged_damage_multiplier", () -> new RangedAttribute(
 					"attribute.name.generic." + MOD_ID + ".ranged_damage_multiplier",
 					1.0D,
@@ -67,7 +68,7 @@ public class AttributeRegistry {
 					1024.0D)
 					.setSyncable(true));
 
-	public static final RegistryObject<Attribute> MAGIC_DAMAGE_MULTIPLIER = ATTRIBUTES
+	public static final DeferredHolder<Attribute, Attribute> MAGIC_DAMAGE_MULTIPLIER = ATTRIBUTES
 			.register("magic_damage_multiplier", () -> new RangedAttribute(
 					"attribute.name.generic." + MOD_ID + ".magic_damage_multiplier",
 					0.0D,
@@ -75,7 +76,7 @@ public class AttributeRegistry {
 					1024.0D)
 					.setSyncable(true));
 
-	public static final RegistryObject<Attribute> ARTIFACT_COOLDOWN_MULTIPLIER = ATTRIBUTES
+	public static final DeferredHolder<Attribute, Attribute> ARTIFACT_COOLDOWN_MULTIPLIER = ATTRIBUTES
 			.register("artifact_cooldown_multiplier", () -> new RangedAttribute(
 					"attribute.name.generic." + MOD_ID + ".artifact_cooldown_multiplier",
 					1.0D,

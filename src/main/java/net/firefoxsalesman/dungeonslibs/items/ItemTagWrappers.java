@@ -9,7 +9,7 @@ import static net.firefoxsalesman.dungeonslibs.utils.ResourceLocationHelper.modL
 
 public class ItemTagWrappers {
 
-	public static final TagKey<Item> CURIOS_ARTIFACTS = tag(new ResourceLocation("curios", "artifact"));
+	public static final TagKey<Item> CURIOS_ARTIFACTS = tag(ResourceLocation.fromNamespaceAndPath("curios", "artifact"));
 	public static final TagKey<Item> ARTIFACT_REPAIR_ITEMS = tag(modLoc("artifact_repair_items"));
 
 	private static TagKey<Item> tag(ResourceLocation resourceLocation) {

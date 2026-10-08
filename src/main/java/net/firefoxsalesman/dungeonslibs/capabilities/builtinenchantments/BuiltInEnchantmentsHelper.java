@@ -7,8 +7,8 @@ import static net.firefoxsalesman.dungeonslibs.capabilities.LibCapabilities.BUIL
 public class BuiltInEnchantmentsHelper {
 
 	public static BuiltInEnchantments getBuiltInEnchantmentsCapability(ItemStack itemStack) {
-		return itemStack.getCapability(BUILT_IN_ENCHANTMENTS_CAPABILITY)
-				.orElse(new BuiltInEnchantments(itemStack));
+		BuiltInEnchantments cap = itemStack.getCapability(BUILT_IN_ENCHANTMENTS_CAPABILITY);
+		return cap != null ? cap : new BuiltInEnchantments(itemStack);
 	}
 
 }

@@ -1,15 +1,15 @@
 package net.firefoxsalesman.dungeonslibs.summon;
 
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.event.AddReloadListenerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import net.firefoxsalesman.dungeonslibs.DungeonsLibs;
 import net.firefoxsalesman.dungeonslibs.data.util.CodecJsonDataManager;
 import net.firefoxsalesman.dungeonslibs.utils.ResourceLocationHelper;
 
-@Mod.EventBusSubscriber(modid = DungeonsLibs.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = DungeonsLibs.MOD_ID, bus = EventBusSubscriber.Bus.GAME)
 public class SummonConfigRegistry {
 	public static final ResourceLocation SUMMON_RESOURCELOCATION = ResourceLocationHelper.modLoc("summon");
 

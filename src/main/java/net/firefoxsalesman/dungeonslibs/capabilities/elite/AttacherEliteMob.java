@@ -1,47 +1,42 @@
 package net.firefoxsalesman.dungeonslibs.capabilities.elite;
 
-import net.firefoxsalesman.dungeonslibs.capabilities.LibCapabilities;
-import net.firefoxsalesman.dungeonslibs.utils.ResourceLocationHelper;
-import net.minecraft.core.Direction;
+import java.util.Optional;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.event.AttachCapabilitiesEvent;
-import org.jetbrains.annotations.NotNull;
+import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.attachment.IAttachmentHolder;
+import net.neoforged.neoforge.attachment.IAttachmentSerializer;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 public class AttacherEliteMob {
 
-	private static class EliteMobProvider implements ICapabilityProvider, INBTSerializable<CompoundTag> {
+	// Must be registered on the mod event bus by the main mod class: ATTACHMENT_TYPES.register(modEventBus)
+	public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES =
+			DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, "dungeonslibs");
 
-		public static final ResourceLocation IDENTIFIER = ResourceLocationHelper.modLoc("elite_mob");
-		private final EliteMob backend = new EliteMob();
-		private final LazyOptional<EliteMob> optionalData = LazyOptional.of(() -> backend);
+	public static final DeferredHolder<AttachmentType<?>, AttachmentType<EliteMob>> ELITE_MOB =
+			ATTACHMENT_TYPES.register("elite_mob", () -> AttachmentType.builder(() -> new EliteMob())
+					.serialize(new IAttachmentSerializer<CompoundTag, EliteMob>() {
+						@Override
+						public EliteMob read(IAttachmentHolder holder, CompoundTag tag, HolderLookup.Provider provider) {
+							EliteMob mob = new EliteMob();
+							mob.deserializeNBT(tag);
+							return mob;
+						}
 
-		@Override
-		public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, Direction side) {
-			return LibCapabilities.ELITE_MOB_CAPABILITY.orEmpty(cap, this.optionalData);
-		}
+						@Override
+						public CompoundTag write(EliteMob attachment, HolderLookup.Provider provider) {
+							return attachment.serializeNBT();
+						}
+					})
+					.build());
 
-		@Override
-		public CompoundTag serializeNBT() {
-			return this.backend.serializeNBT();
-		}
-
-		@Override
-		public void deserializeNBT(CompoundTag nbt) {
-			this.backend.deserializeNBT(nbt);
-		}
-	}
-
-	public static void attach(final AttachCapabilitiesEvent<Entity> event) {
-		if (event.getObject() instanceof Mob) {
-			final EliteMobProvider provider = new EliteMobProvider();
-			event.addCapability(EliteMobProvider.IDENTIFIER, provider);
-		}
+	// Only Mobs carry elite data; the gate that used to live in the attach handler goes here.
+	public static Optional<EliteMob> get(Entity entity) {
+		return entity instanceof Mob ? Optional.of(entity.getData(ELITE_MOB)) : Optional.empty();
 	}
 }

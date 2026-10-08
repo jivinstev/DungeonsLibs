@@ -2,6 +2,8 @@ package net.firefoxsalesman.dungeonslibs.items.gearconfig;
 
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.common.ItemAbilities;
+import net.neoforged.neoforge.common.ItemAbility;
 
 public class PickaxeGear extends ToolGear {
 
@@ -10,7 +12,7 @@ public class PickaxeGear extends ToolGear {
 	}
 
 	@Override
-	public boolean canPerformAction(ItemStack stack, net.minecraftforge.common.ToolAction toolAction) {
-		return net.minecraftforge.common.ToolActions.DEFAULT_PICKAXE_ACTIONS.contains(toolAction);
+	public boolean canPerformAction(ItemStack stack, ItemAbility itemAbility) {
+		return ItemAbilities.DEFAULT_PICKAXE_ACTIONS.contains(itemAbility);
 	}
 }

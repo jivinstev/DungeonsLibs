@@ -1,5 +1,8 @@
 package net.firefoxsalesman.dungeonslibs.items.materials.armor;
 
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.resources.ResourceLocation;
@@ -10,32 +13,34 @@ import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraftforge.registries.ForgeRegistries;
 
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
-import static net.minecraftforge.registries.ForgeRegistries.ITEMS;
+import static net.minecraft.core.registries.BuiltInRegistries.ITEM;
 
-public class DungeonsArmorMaterial implements ArmorMaterial {
+public class DungeonsArmorMaterial {
 
-	public static final Codec<ArmorMaterial> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-			Codec.STRING.fieldOf("name").forGetter(
-					iArmorMaterial -> ((DungeonsArmorMaterial) iArmorMaterial).getName()),
-			Codec.INT.fieldOf("durability").forGetter(
-					iArmorMaterial -> ((DungeonsArmorMaterial) iArmorMaterial).durability),
-			Codec.INT.listOf().fieldOf("damage_reduction_amounts").forGetter(
-					iArmorMaterial -> ((DungeonsArmorMaterial) iArmorMaterial).damageReductionAmounts),
-			Codec.INT.fieldOf("enchantability")
-					.forGetter(iArmorMaterial -> iArmorMaterial.getEnchantmentValue()),
-			ResourceLocation.CODEC.fieldOf("repair_item").forGetter(
-					iArmorMaterial -> ((DungeonsArmorMaterial) iArmorMaterial).repairItemResourceLocation),
-			ForgeRegistries.SOUND_EVENTS.getCodec().fieldOf("equip_sound").forGetter(
-					iArmorMaterial -> ((DungeonsArmorMaterial) iArmorMaterial).getEquipSound()),
-			Codec.FLOAT.fieldOf("toughness").forGetter(iArmorMaterial -> iArmorMaterial.getToughness()),
+	public static DungeonsArmorMaterial create(String name, int durability, List<Integer> damageReductionAmounts,
+			int enchantability, ResourceLocation repairItem, SoundEvent equipSound, float toughness,
+			float knockbackResistance, ArmorMaterialBaseType baseType) {
+		return new DungeonsArmorMaterial(name, durability, damageReductionAmounts, enchantability, repairItem,
+				equipSound, toughness, knockbackResistance, baseType);
+	}
+
+	public static final Codec<DungeonsArmorMaterial> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+			Codec.STRING.fieldOf("name").forGetter(DungeonsArmorMaterial::getName),
+			Codec.INT.fieldOf("durability").forGetter(m -> m.durability),
+			Codec.INT.listOf().fieldOf("damage_reduction_amounts").forGetter(m -> m.damageReductionAmounts),
+			Codec.INT.fieldOf("enchantability").forGetter(DungeonsArmorMaterial::getEnchantmentValue),
+			ResourceLocation.CODEC.fieldOf("repair_item").forGetter(m -> m.repairItemResourceLocation),
+			BuiltInRegistries.SOUND_EVENT.byNameCodec().fieldOf("equip_sound")
+					.forGetter(DungeonsArmorMaterial::getEquipSound),
+			Codec.FLOAT.fieldOf("toughness").forGetter(DungeonsArmorMaterial::getToughness),
 			Codec.FLOAT.fieldOf("knockback_resistance")
-					.forGetter(iArmorMaterial -> iArmorMaterial.getKnockbackResistance()),
-			ArmorMaterialBaseType.CODEC.fieldOf("base_type")
-					.forGetter(iArmorMaterial -> ((DungeonsArmorMaterial) iArmorMaterial).baseType))
+					.forGetter(DungeonsArmorMaterial::getKnockbackResistance),
+			ArmorMaterialBaseType.CODEC.fieldOf("base_type").forGetter(m -> m.baseType))
 			.apply(instance, DungeonsArmorMaterial::new));
 
 	// Armor order: boots, leggings, chestplate, helmet
@@ -59,8 +64,8 @@ public class DungeonsArmorMaterial implements ArmorMaterial {
 		this.durability = durability;
 		this.enchantability = enchantability;
 		this.repairItemResourceLocation = repairItemResourceLocation;
-		if (ITEMS.containsKey(repairItemResourceLocation)) {
-			Item item = ITEMS.getValue(repairItemResourceLocation);
+		if (ITEM.containsKey(repairItemResourceLocation)) {
+			Item item = ITEM.get(repairItemResourceLocation);
 			repairItem = new LazyLoadedValue<>(() -> Ingredient.of(item));
 		} else {
 			repairItem = new LazyLoadedValue<>(() -> Ingredient.of(Items.IRON_INGOT));
@@ -71,33 +76,27 @@ public class DungeonsArmorMaterial implements ArmorMaterial {
 		this.baseType = baseType;
 	}
 
-	@Override
 	public int getEnchantmentValue() {
 		return enchantability;
 	}
 
-	@Override
 	public String getName() {
 		return name;
 	}
 
-	@Override
 	public Ingredient getRepairIngredient() {
 		return repairItem.get();
 	}
 
-	@Override
 	public SoundEvent getEquipSound() {
 		return equipSound;
 	}
 
-	@Override
 	public float getToughness() {
 		return toughness;
 	}
 
 	// getKnockbackResistance
-	@Override
 	public float getKnockbackResistance() {
 		return knockbackResistance;
 	}
@@ -106,13 +105,29 @@ public class DungeonsArmorMaterial implements ArmorMaterial {
 		return baseType;
 	}
 
-	@Override
 	public int getDurabilityForType(Type pType) {
 		return BASE_DURABILITY_ARRAY[pType.getSlot().getIndex()] * durability;
 	}
 
-	@Override
 	public int getDefenseForType(Type pType) {
 		return damageReductionAmounts.get(pType.getSlot().getIndex());
+	}
+
+	/** Builds the vanilla 1.21.1 ArmorMaterial record from this data. */
+	public ArmorMaterial toArmorMaterial() {
+		Map<Type, Integer> defense = new EnumMap<>(Type.class);
+		for (Type type : Type.values()) {
+			if (type == Type.BODY) {
+				continue;
+			}
+			int index = type.getSlot().getIndex();
+			if (index < damageReductionAmounts.size()) {
+				defense.put(type, damageReductionAmounts.get(index));
+			}
+		}
+		ResourceLocation assetName = name.contains(":") ? ResourceLocation.parse(name)
+				: ResourceLocation.withDefaultNamespace(name);
+		return new ArmorMaterial(defense, enchantability, Holder.direct(equipSound), repairItem::get,
+				List.of(new ArmorMaterial.Layer(assetName)), toughness, knockbackResistance);
 	}
 }

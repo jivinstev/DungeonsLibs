@@ -1,9 +1,11 @@
 package net.firefoxsalesman.dungeonslibs.items.artifacts;
 
+import net.minecraft.core.Holder;
+
 import static java.util.UUID.randomUUID;
 import static net.firefoxsalesman.dungeonslibs.attribute.AttributeRegistry.ARTIFACT_COOLDOWN_MULTIPLIER;
 import static net.firefoxsalesman.dungeonslibs.items.ItemTagWrappers.ARTIFACT_REPAIR_ITEMS;
-import static net.minecraftforge.registries.ForgeRegistries.ATTRIBUTES;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.List;
 import java.util.Map;
@@ -18,9 +20,10 @@ import net.firefoxsalesman.dungeonslibs.items.artifacts.config.ArtifactGearConfi
 import net.firefoxsalesman.dungeonslibs.items.interfaces.IReloadableGear;
 import net.firefoxsalesman.dungeonslibs.utils.DescriptionHelper;
 import net.firefoxsalesman.dungeonslibs.mixin.CooldownAccessor;
-import net.firefoxsalesman.dungeonslibs.mixin.ItemAccessor;
+import net.firefoxsalesman.dungeonslibs.mixin.ItemMaxDamage;
 import net.firefoxsalesman.dungeonslibs.mixin.ItemCooldownsAccessor;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
@@ -33,10 +36,9 @@ import net.minecraft.world.item.ItemCooldowns;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.common.NeoForge;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurioItem;
 
@@ -45,27 +47,26 @@ public abstract class ArtifactItem extends Item implements ICurioItem, IReloadab
 	protected final UUID SLOT1_UUID = UUID.fromString("1906bae9-9f26-4194-bb8a-ef95b8cad134");
 	protected final UUID SLOT2_UUID = UUID.fromString("b99aa930-03d0-4b2d-aa69-7b5d943dd75c");
 
-	private Multimap<Attribute, AttributeModifier> defaultModifiers;
+	private Multimap<Holder<Attribute>, AttributeModifier> defaultModifiers;
 	protected boolean procOnItemUse = false;
 	private ArtifactGearConfig artifactGearConfig;
 
 	public ArtifactItem(Properties properties) {
-		super(properties.defaultDurability(64));
+		super(properties.durability(64).rarity(Rarity.RARE));
 		reload();
 	}
 
 	@Override
 	public void reload() {
-		artifactGearConfig = ArtifactGearConfigRegistry.getConfig(ForgeRegistries.ITEMS.getKey(this));
-		((ItemAccessor) this).setMaxDamage(artifactGearConfig.getDurability());
-		ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
+		artifactGearConfig = ArtifactGearConfigRegistry.getConfig(BuiltInRegistries.ITEM.getKey(this));
+		ItemMaxDamage.setMaxDamage(this, artifactGearConfig.getDurability());
+		ImmutableMultimap.Builder<Holder<Attribute>, AttributeModifier> builder = ImmutableMultimap.builder();
 		artifactGearConfig.getAttributes().forEach(attributeModifier -> {
-			Attribute attribute = ATTRIBUTES.getValue(attributeModifier.getAttributeResourceLocation());
-			if (attribute != null) {
+			BuiltInRegistries.ATTRIBUTE.getHolder(attributeModifier.getAttributeResourceLocation()).ifPresent(attribute -> {
 				UUID uuid = randomUUID();
-				builder.put(attribute, new AttributeModifier(uuid, "Weapon modifier",
+				builder.put(attribute, new AttributeModifier(ResourceLocation.fromNamespaceAndPath("dungeonslibs", "weapon_modifier"),
 						attributeModifier.getAmount(), attributeModifier.getOperation()));
-			}
+			});
 		});
 		this.defaultModifiers = builder.build();
 	}
@@ -80,7 +81,7 @@ public abstract class ArtifactItem extends Item implements ICurioItem, IReloadab
 				: 0;
 
 		AttributeInstance artifactCooldownMultiplierAttribute = playerIn
-				.getAttribute(ARTIFACT_COOLDOWN_MULTIPLIER.get());
+				.getAttribute(ARTIFACT_COOLDOWN_MULTIPLIER);
 		double attributeModifier = artifactCooldownMultiplierAttribute != null
 				? artifactCooldownMultiplierAttribute.getValue()
 				: 1.0D;
@@ -89,7 +90,7 @@ public abstract class ArtifactItem extends Item implements ICurioItem, IReloadab
 
 	public static void triggerSynergy(Player player, ItemStack stack) {
 		ArtifactEvent.Activated event = new ArtifactEvent.Activated(player, stack);
-		net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(event);
+		NeoForge.EVENT_BUS.post(event);
 	}
 
 	public static void reduceArtifactCooldowns(Player playerEntity, double reductionInSeconds) {
@@ -105,13 +106,9 @@ public abstract class ArtifactItem extends Item implements ICurioItem, IReloadab
 		}
 	}
 
-	public Rarity getRarity(ItemStack itemStack) {
-		return Rarity.RARE;
-	}
-
 	@Override
 	public boolean isValidRepairItem(ItemStack toRepair, ItemStack repair) {
-		return ForgeRegistries.ITEMS.tags().getTag(ARTIFACT_REPAIR_ITEMS).contains(repair.getItem())
+		return repair.is(ARTIFACT_REPAIR_ITEMS)
 				|| super.isValidRepairItem(toRepair, repair);
 	}
 
@@ -143,18 +140,17 @@ public abstract class ArtifactItem extends Item implements ICurioItem, IReloadab
 	public void stopUsingArtifact(LivingEntity livingEntity) {
 	}
 
-	public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(int slotIndex) {
+	public Multimap<Holder<Attribute>, AttributeModifier> getDefaultAttributeModifiers(int slotIndex) {
 		return getAttributeModifiersForSlot(getUUIDForSlot(slotIndex));
 	}
 
-	private ImmutableMultimap<Attribute, AttributeModifier> getAttributeModifiersForSlot(UUID slot_uuid) {
-		ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
+	private ImmutableMultimap<Holder<Attribute>, AttributeModifier> getAttributeModifiersForSlot(UUID slot_uuid) {
+		ImmutableMultimap.Builder<Holder<Attribute>, AttributeModifier> builder = ImmutableMultimap.builder();
 		artifactGearConfig.getAttributes().forEach(attributeModifier -> {
-			Attribute attribute = ATTRIBUTES.getValue(attributeModifier.getAttributeResourceLocation());
-			if (attribute != null) {
-				builder.put(attribute, new AttributeModifier(slot_uuid, "Artifact modifier",
+			BuiltInRegistries.ATTRIBUTE.getHolder(attributeModifier.getAttributeResourceLocation()).ifPresent(attribute -> {
+				builder.put(attribute, new AttributeModifier(ResourceLocation.fromNamespaceAndPath("dungeonslibs", "artifact_modifier"),
 						attributeModifier.getAmount(), attributeModifier.getOperation()));
-			}
+			});
 		});
 		return builder.build();
 	}
@@ -174,7 +170,7 @@ public abstract class ArtifactItem extends Item implements ICurioItem, IReloadab
 
 	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void appendHoverText(ItemStack stack, Level world, List<Component> list, TooltipFlag flag) {
+	public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext world, List<Component> list, TooltipFlag flag) {
 		super.appendHoverText(stack, world, list, flag);
 		DescriptionHelper.addArtifactDescription(list, stack);
 	}

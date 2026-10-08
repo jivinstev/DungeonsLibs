@@ -1,15 +1,19 @@
 package net.firefoxsalesman.dungeonslibs.network;
 
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
+
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
-
-import static net.minecraftforge.registries.ForgeRegistries.ENCHANTMENTS;
 
 public class BuiltInEnchantmentsMessage {
 	private final int entityId;
@@ -28,26 +32,28 @@ public class BuiltInEnchantmentsMessage {
 		buffer.writeResourceLocation(resourceLocation);
 		buffer.writeVarInt(enchantmentInstanceList.size());
 		this.enchantmentInstanceList.forEach(enchantmentInstance -> {
-			buffer.writeResourceLocation(ENCHANTMENTS.getKey(enchantmentInstance.enchantment));
+			buffer.writeResourceLocation(enchantmentInstance.enchantment.unwrapKey().orElseThrow().location());
 			buffer.writeInt(enchantmentInstance.level);
 		});
 	}
 
-	public static BuiltInEnchantmentsMessage decode(FriendlyByteBuf buffer) {
+	public static BuiltInEnchantmentsMessage decode(RegistryFriendlyByteBuf buffer) {
 		int entityId = buffer.readInt();
 		ResourceLocation resourceLocation = buffer.readResourceLocation();
 		List<EnchantmentInstance> enchantmentInstance = new ArrayList<>();
 		int length = buffer.readVarInt();
+		HolderLookup.RegistryLookup<Enchantment> lookup = buffer.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
 		for (int x = 0; x < length; x++) {
-			enchantmentInstance.add(new EnchantmentInstance(
-					ENCHANTMENTS.getValue(buffer.readResourceLocation()), buffer.readInt()));
+			ResourceKey<Enchantment> key = ResourceKey.create(Registries.ENCHANTMENT, buffer.readResourceLocation());
+			Holder<Enchantment> holder = lookup.getOrThrow(key);
+			enchantmentInstance.add(new EnchantmentInstance(holder, buffer.readInt()));
 		}
 
 		return new BuiltInEnchantmentsMessage(entityId, resourceLocation, enchantmentInstance);
 	}
 
 	public static boolean onPacketReceived(BuiltInEnchantmentsMessage message,
-			Supplier<NetworkEvent.Context> contextSupplier) {
+			IPayloadContext context) {
 		/*
 		 * NetworkEvent.Context context = contextSupplier.get();
 		 * if (context.getDirection().getReceptionSide() == LogicalSide.CLIENT) {

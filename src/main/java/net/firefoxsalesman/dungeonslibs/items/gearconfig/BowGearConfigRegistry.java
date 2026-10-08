@@ -2,7 +2,6 @@ package net.firefoxsalesman.dungeonslibs.items.gearconfig;
 
 import net.firefoxsalesman.dungeonslibs.data.util.CodecJsonDataManager;
 import net.firefoxsalesman.dungeonslibs.network.gearconfig.BowGearConfigSyncPacket;
-import net.firefoxsalesman.dungeonslibs.network.NetworkHandler;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Map;
@@ -25,6 +24,6 @@ public class BowGearConfigRegistry {
 	}
 
 	public static void subscribe() {
-		BOW_GEAR_CONFIGS.subscribeAsSyncable(NetworkHandler.INSTANCE, BowGearConfigRegistry::toPacket);
+		BOW_GEAR_CONFIGS.subscribeAsSyncable(BowGearConfigRegistry::toPacket);
 	}
 }

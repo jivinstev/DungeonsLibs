@@ -1,24 +1,24 @@
 package net.firefoxsalesman.dungeonslibs.entities;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.firefoxsalesman.dungeonslibs.DungeonsLibs;
 import static net.firefoxsalesman.dungeonslibs.utils.ResourceLocationHelper.modLoc;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import java.util.function.Supplier;
 
 public final class LibEntityTypes {
 
 	public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister
-			.create(ForgeRegistries.ENTITY_TYPES, DungeonsLibs.MOD_ID);
+			.create(BuiltInRegistries.ENTITY_TYPE, DungeonsLibs.MOD_ID);
 
-	public static final RegistryObject<EntityType<SoulOrbEntity>> SOUL_ORB = ENTITY_TYPES.register("soul_orb",
+	public static final Supplier<EntityType<SoulOrbEntity>> SOUL_ORB = ENTITY_TYPES.register("soul_orb",
 			() -> EntityType.Builder.<SoulOrbEntity>of(SoulOrbEntity::new, MobCategory.MISC)
 					.sized(0.5F, 0.5F).clientTrackingRange(6).updateInterval(20)
 					.build(modLoc("soul_orb").toString()));
-	public static final RegistryObject<EntityType<SummonSpotEntity>> SUMMON_SPOT = ENTITY_TYPES.register(
+	public static final Supplier<EntityType<SummonSpotEntity>> SUMMON_SPOT = ENTITY_TYPES.register(
 			"summon_spot",
 			() -> EntityType.Builder.<SummonSpotEntity>of(SummonSpotEntity::new, MobCategory.MISC)
 					.fireImmune()

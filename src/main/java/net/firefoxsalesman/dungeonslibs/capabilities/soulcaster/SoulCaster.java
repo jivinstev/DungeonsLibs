@@ -3,11 +3,12 @@ package net.firefoxsalesman.dungeonslibs.capabilities.soulcaster;
 import com.Polarice3.Goety.utils.SEHelper;
 
 import net.firefoxsalesman.dungeonslibs.utils.ModHelper;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.common.util.INBTSerializable;
 
 import javax.annotation.Nullable;
 
@@ -46,7 +47,7 @@ public class SoulCaster implements INBTSerializable<CompoundTag> {
 			SEHelper.setSoulsAmount((Player) living, 0);
 			SEHelper.setSoulsAmount((Player) living, (int) amount);
 		} else if (living != null) {
-			this.souls = Mth.clamp(amount, 0, (float) living.getAttributeValue(SOUL_CAP.get()));
+			this.souls = Mth.clamp(amount, 0, (float) living.getAttributeValue(SOUL_CAP));
 		} else {
 			this.souls = Math.max(amount, 0);
 		}
@@ -54,14 +55,14 @@ public class SoulCaster implements INBTSerializable<CompoundTag> {
 
 	@Nullable
 	@Override
-	public CompoundTag serializeNBT() {
+	public CompoundTag serializeNBT(HolderLookup.Provider provider) {
 		CompoundTag tag = new CompoundTag();
 		tag.putFloat("souls", this.getSouls());
 		return tag;
 	}
 
 	@Override
-	public void deserializeNBT(CompoundTag tag) {
+	public void deserializeNBT(HolderLookup.Provider provider, CompoundTag tag) {
 		this.setSouls(tag.getFloat("souls"), null);
 	}
 }

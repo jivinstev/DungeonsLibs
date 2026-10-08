@@ -2,7 +2,6 @@ package net.firefoxsalesman.dungeonslibs.items.gearconfig;
 
 import net.firefoxsalesman.dungeonslibs.data.util.CodecJsonDataManager;
 import net.firefoxsalesman.dungeonslibs.network.gearconfig.CrossbowGearConfigSyncPacket;
-import net.firefoxsalesman.dungeonslibs.network.NetworkHandler;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Map;
@@ -25,7 +24,6 @@ public class CrossbowGearConfigRegistry {
 	}
 
 	public static void subscribe() {
-		CROSSBOW_GEAR_CONFIGS.subscribeAsSyncable(NetworkHandler.INSTANCE,
-				CrossbowGearConfigRegistry::toPacket);
+		CROSSBOW_GEAR_CONFIGS.subscribeAsSyncable(CrossbowGearConfigRegistry::toPacket);
 	}
 }

@@ -1,20 +1,19 @@
 package net.firefoxsalesman.dungeonslibs.capabilities.soulcaster;
 
-import static net.firefoxsalesman.dungeonslibs.capabilities.LibCapabilities.SOUL_CASTER_CAPABILITY;
 import static net.firefoxsalesman.dungeonslibs.attribute.AttributeRegistry.SOUL_CAP;
 
 import com.Polarice3.Goety.utils.SEHelper;
 import net.firefoxsalesman.dungeonslibs.items.interfaces.ISoulConsumer;
 import net.firefoxsalesman.dungeonslibs.network.UpdateSoulsMessage;
 import net.firefoxsalesman.dungeonslibs.utils.ModHelper;
-import net.firefoxsalesman.dungeonslibs.network.NetworkHandler;
+
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 public class SoulCasterHelper {
 
@@ -23,8 +22,7 @@ public class SoulCasterHelper {
 		float newAmount = getSouls(le) + amount + 1;
 		soulCasterCapability.setSouls(newAmount, le);
 		if (le instanceof ServerPlayer) {
-			NetworkHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) le),
-					new UpdateSoulsMessage(getSouls(le)));
+			PacketDistributor.sendToPlayer((ServerPlayer) le, new UpdateSoulsMessage(getSouls(le)));
 		}
 	}
 
@@ -33,8 +31,7 @@ public class SoulCasterHelper {
 		float newAmount = amount;
 		soulCasterCapability.setSouls(newAmount, le);
 		if (le instanceof ServerPlayer)
-			NetworkHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) le),
-					new UpdateSoulsMessage(getSouls(le)));
+			PacketDistributor.sendToPlayer((ServerPlayer) le, new UpdateSoulsMessage(getSouls(le)));
 
 	}
 
@@ -48,8 +45,7 @@ public class SoulCasterHelper {
 		float newAmount = soulCount - amount;
 		SoulCasterHelper.setSouls(le, newAmount);
 		if (le instanceof ServerPlayer)
-			NetworkHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) le),
-					new UpdateSoulsMessage(getSouls(le)));
+			PacketDistributor.sendToPlayer((ServerPlayer) le, new UpdateSoulsMessage(getSouls(le)));
 
 		return true;
 	}
@@ -67,7 +63,7 @@ public class SoulCasterHelper {
 	}
 
 	public static SoulCaster getSoulCasterCapability(Entity entity) {
-		return entity.getCapability(SOUL_CASTER_CAPABILITY).orElse(new SoulCaster());
+		return AttacherSoulCaster.get(entity).orElse(new SoulCaster());
 	}
 
 	public static float getSouls(Entity le) {
@@ -84,6 +80,6 @@ public class SoulCasterHelper {
 	}
 
 	public static float getSoulCap(LivingEntity le) {
-		return (float) le.getAttributeValue(SOUL_CAP.get());
+		return (float) le.getAttributeValue(SOUL_CAP);
 	}
 }

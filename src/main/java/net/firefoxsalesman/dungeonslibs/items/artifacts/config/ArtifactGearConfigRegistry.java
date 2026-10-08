@@ -5,7 +5,6 @@ import java.util.Map;
 import net.firefoxsalesman.dungeonslibs.data.util.CodecJsonDataManager;
 import net.firefoxsalesman.dungeonslibs.network.gearconfig.ArtifactGearConfigSyncPacket;
 import net.firefoxsalesman.dungeonslibs.utils.ResourceLocationHelper;
-import net.firefoxsalesman.dungeonslibs.network.NetworkHandler;
 import net.minecraft.resources.ResourceLocation;
 
 public class ArtifactGearConfigRegistry {
@@ -28,7 +27,6 @@ public class ArtifactGearConfigRegistry {
 	}
 
 	public static void subscribe() {
-		ARTIFACT_GEAR_CONFIGS.subscribeAsSyncable(NetworkHandler.INSTANCE,
-				ArtifactGearConfigRegistry::toPacket);
+		ARTIFACT_GEAR_CONFIGS.subscribeAsSyncable(ArtifactGearConfigRegistry::toPacket);
 	}
 }

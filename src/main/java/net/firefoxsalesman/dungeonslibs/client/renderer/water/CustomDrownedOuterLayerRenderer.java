@@ -13,7 +13,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.monster.Drowned;
 
 public class CustomDrownedOuterLayerRenderer<T extends Drowned> extends DrownedOuterLayer<T> {
-	private static final ResourceLocation ORDINARY_TEXTURE = new ResourceLocation(
+	private static final ResourceLocation ORDINARY_TEXTURE = ResourceLocation.parse(
 			"textures/entity/zombie/drowned_outer_layer.png");
 	private static final ResourceLocation SEAWEED_TEXTURE = ResourceLocationHelper
 			.modLoc("textures/entity/ocean/seaweed_armored_drowned_outer_layer.png");
@@ -54,6 +54,6 @@ public class CustomDrownedOuterLayerRenderer<T extends Drowned> extends DrownedO
 		}
 		coloredCutoutModelCopyLayerRender(this.getParentModel(), this.model, texture,
 				pMatrixStack, pBuffer, pPackedLight, pLivingEntity, pLimbSwing, pLimbSwingAmount,
-				pAgeInTicks, pNetHeadYaw, pHeadPitch, pPartialTicks, 1.0F, 1.0F, 1.0F);
+				pPartialTicks, pAgeInTicks, pNetHeadYaw, pHeadPitch, 0xFFFFFFFF);
 	}
 }

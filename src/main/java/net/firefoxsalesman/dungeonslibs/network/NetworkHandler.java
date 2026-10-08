@@ -9,79 +9,45 @@ import net.firefoxsalesman.dungeonslibs.network.gearconfig.CrossbowGearConfigSyn
 import net.firefoxsalesman.dungeonslibs.network.gearconfig.MeleeGearConfigSyncPacket;
 import net.firefoxsalesman.dungeonslibs.network.materials.ArmorMaterialSyncPacket;
 import net.firefoxsalesman.dungeonslibs.network.materials.WeaponMaterialSyncPacket;
-import net.firefoxsalesman.dungeonslibs.utils.ResourceLocationHelper;
-import net.minecraftforge.network.NetworkRegistry;
-import net.minecraftforge.network.simple.SimpleChannel;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 public class NetworkHandler {
-	public static final SimpleChannel INSTANCE = NetworkRegistry.ChannelBuilder.named(
-			ResourceLocationHelper.modLoc("network"))
-			.clientAcceptedVersions("1"::equals)
-			.serverAcceptedVersions("1"::equals)
-			.networkProtocolVersion(() -> "1")
-			.simpleChannel();
-
-	protected static int PACKET_COUNTER = 0;
 
 	public NetworkHandler() {
 	}
 
-	public static void init() {
-		INSTANCE.messageBuilder(UpdateSoulsMessage.class, incrementAndGetPacketCounter())
-				.encoder(UpdateSoulsMessage::encode).decoder(UpdateSoulsMessage::decode)
-				.consumerMainThread(UpdateSoulsMessage.UpdateSoulsHandler::handle).add();
-		INSTANCE.messageBuilder(ArmorGearConfigSyncPacket.class, incrementAndGetPacketCounter())
-				.encoder(ArmorGearConfigSyncPacket::encode).decoder(ArmorGearConfigSyncPacket::decode)
-				.consumerMainThread(ArmorGearConfigSyncPacket::onPacketReceived)
-				.add();
-		INSTANCE.messageBuilder(MeleeGearConfigSyncPacket.class, incrementAndGetPacketCounter())
-				.encoder(MeleeGearConfigSyncPacket::encode).decoder(MeleeGearConfigSyncPacket::decode)
-				.consumerMainThread(MeleeGearConfigSyncPacket::onPacketReceived)
-				.add();
-		INSTANCE.messageBuilder(BowGearConfigSyncPacket.class, incrementAndGetPacketCounter())
-				.encoder(BowGearConfigSyncPacket::encode).decoder(BowGearConfigSyncPacket::decode)
-				.consumerMainThread(BowGearConfigSyncPacket::onPacketReceived)
-				.add();
-		INSTANCE.messageBuilder(CrossbowGearConfigSyncPacket.class, incrementAndGetPacketCounter())
-				.encoder(CrossbowGearConfigSyncPacket::encode)
-				.decoder(CrossbowGearConfigSyncPacket::decode)
-				.consumerMainThread(CrossbowGearConfigSyncPacket::onPacketReceived)
-				.add();
-		INSTANCE.messageBuilder(ArmorMaterialSyncPacket.class, incrementAndGetPacketCounter())
-				.encoder(ArmorMaterialSyncPacket::encode).decoder(ArmorMaterialSyncPacket::decode)
-				.consumerMainThread(ArmorMaterialSyncPacket::onPacketReceived)
-				.add();
-		INSTANCE.messageBuilder(WeaponMaterialSyncPacket.class, incrementAndGetPacketCounter())
-				.encoder(WeaponMaterialSyncPacket::encode).decoder(WeaponMaterialSyncPacket::decode)
-				.consumerMainThread(WeaponMaterialSyncPacket::onPacketReceived)
-				.add();
-		INSTANCE.messageBuilder(CuriosArtifactStartMessage.class, incrementAndGetPacketCounter())
-				.encoder(CuriosArtifactStartMessage::encode).decoder(CuriosArtifactStartMessage::decode)
-				.consumerMainThread(CuriosArtifactStartMessage.CuriosArtifactHandler::handle)
-				.add();
-		INSTANCE.messageBuilder(CuriosArtifactStopMessage.class,
-				incrementAndGetPacketCounter())
-				.encoder(CuriosArtifactStopMessage::encode).decoder(CuriosArtifactStopMessage::decode)
-				.consumerMainThread(CuriosArtifactStopMessage::handle)
-				.add();
-		INSTANCE.messageBuilder(EliteMobMessage.class, incrementAndGetPacketCounter())
-				.encoder(EliteMobMessage::encode).decoder(EliteMobMessage::decode)
-				.consumerMainThread(EliteMobMessage::handle).add();
-		INSTANCE.messageBuilder(BreakItemMessage.class, incrementAndGetPacketCounter())
-				.encoder(BreakItemMessage::encode).decoder(BreakItemMessage::decode)
-				.consumerMainThread(BreakItemMessage.BreakItemHandler::handle)
-				.add();
-		INSTANCE.messageBuilder(SwitchHandMessage.class, incrementAndGetPacketCounter())
-				.encoder(SwitchHandMessage::encode).decoder(SwitchHandMessage::decode)
-				.consumerMainThread(SwitchHandMessage.SwitchHandHandler::handle).add();
-		INSTANCE.messageBuilder(ArtifactGearConfigSyncPacket.class, incrementAndGetPacketCounter())
-				.encoder(ArtifactGearConfigSyncPacket::encode)
-				.decoder(ArtifactGearConfigSyncPacket::decode)
-				.consumerMainThread(ArtifactGearConfigSyncPacket::onPacketReceived)
-				.add();
+	/** Call with the mod event bus. */
+	public static void init(IEventBus modBus) {
+		modBus.addListener(NetworkHandler::register);
 	}
 
-	public static int incrementAndGetPacketCounter() {
-		return PACKET_COUNTER++;
+	public static void register(RegisterPayloadHandlersEvent event) {
+		PayloadRegistrar r = event.registrar("1");
+		r.playToClient(UpdateSoulsMessage.TYPE, UpdateSoulsMessage.STREAM_CODEC,
+				UpdateSoulsMessage.UpdateSoulsHandler::handle);
+		r.playToClient(ArmorGearConfigSyncPacket.TYPE, ArmorGearConfigSyncPacket.STREAM_CODEC,
+				ArmorGearConfigSyncPacket::handle);
+		r.playToClient(MeleeGearConfigSyncPacket.TYPE, MeleeGearConfigSyncPacket.STREAM_CODEC,
+				MeleeGearConfigSyncPacket::handle);
+		r.playToClient(BowGearConfigSyncPacket.TYPE, BowGearConfigSyncPacket.STREAM_CODEC,
+				BowGearConfigSyncPacket::handle);
+		r.playToClient(CrossbowGearConfigSyncPacket.TYPE, CrossbowGearConfigSyncPacket.STREAM_CODEC,
+				CrossbowGearConfigSyncPacket::handle);
+		r.playToClient(ArmorMaterialSyncPacket.TYPE, ArmorMaterialSyncPacket.STREAM_CODEC,
+				ArmorMaterialSyncPacket::handle);
+		r.playToClient(WeaponMaterialSyncPacket.TYPE, WeaponMaterialSyncPacket.STREAM_CODEC,
+				WeaponMaterialSyncPacket::handle);
+		r.playBidirectional(CuriosArtifactStartMessage.TYPE, CuriosArtifactStartMessage.STREAM_CODEC,
+				CuriosArtifactStartMessage.CuriosArtifactHandler::handle);
+		r.playBidirectional(CuriosArtifactStopMessage.TYPE, CuriosArtifactStopMessage.STREAM_CODEC,
+				CuriosArtifactStopMessage::handle);
+		r.playToClient(EliteMobMessage.TYPE, EliteMobMessage.STREAM_CODEC, EliteMobMessage::handle);
+		r.playToClient(BreakItemMessage.TYPE, BreakItemMessage.STREAM_CODEC,
+				BreakItemMessage.BreakItemHandler::handle);
+		r.playToServer(SwitchHandMessage.TYPE, SwitchHandMessage.STREAM_CODEC, SwitchHandMessage::handle);
+		r.playToClient(ArtifactGearConfigSyncPacket.TYPE, ArtifactGearConfigSyncPacket.STREAM_CODEC,
+				ArtifactGearConfigSyncPacket::handle);
 	}
 }

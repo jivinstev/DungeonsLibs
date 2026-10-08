@@ -1,32 +1,32 @@
 package net.firefoxsalesman.dungeonslibs.items.gearconfig;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Holder;
 
 import net.firefoxsalesman.dungeonslibs.items.interfaces.IRangedWeapon;
 import net.firefoxsalesman.dungeonslibs.items.interfaces.IReloadableGear;
 import net.firefoxsalesman.dungeonslibs.items.interfaces.IUniqueGear;
 import net.firefoxsalesman.dungeonslibs.utils.DescriptionHelper;
-import net.firefoxsalesman.dungeonslibs.mixin.ItemAccessor;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.firefoxsalesman.dungeonslibs.mixin.ItemMaxDamage;
 import net.minecraft.world.item.*;
-import net.minecraft.world.level.Level;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 
 import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
 
-import static java.util.UUID.randomUUID;
 import static net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE;
 import static net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED;
-import static net.minecraftforge.registries.ForgeRegistries.ATTRIBUTES;
 
 public class BowGear extends BowItem implements IRangedWeapon, IReloadableGear, IUniqueGear {
 
-	private Multimap<Attribute, AttributeModifier> defaultModifiers;
+	private ItemAttributeModifiers defaultModifiers;
+	private int configuredDurability;
 	private BowGearConfig bowGearConfig;
 
 	public BowGear(Properties builder) {
@@ -36,23 +36,28 @@ public class BowGear extends BowItem implements IRangedWeapon, IReloadableGear, 
 
 	@Override
 	public void reload() {
-		bowGearConfig = BowGearConfigRegistry.getConfig(ForgeRegistries.ITEMS.getKey(this));
-		ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
+		bowGearConfig = BowGearConfigRegistry.getConfig(BuiltInRegistries.ITEM.getKey(this));
+		ItemAttributeModifiers.Builder builder = ItemAttributeModifiers.builder();
 		bowGearConfig.getAttributes().forEach(attributeModifier -> {
-			Attribute attribute = ATTRIBUTES.getValue(attributeModifier.getAttributeResourceLocation());
-			if (attribute != null) {
-				UUID uuid = randomUUID();
-				if (ATTACK_DAMAGE.equals(attribute)) {
-					uuid = BASE_ATTACK_DAMAGE_UUID;
-				} else if (ATTACK_SPEED.equals(attribute)) {
-					uuid = BASE_ATTACK_SPEED_UUID;
+			ResourceLocation attributeId = attributeModifier.getAttributeResourceLocation();
+			Optional<Holder.Reference<Attribute>> attribute = BuiltInRegistries.ATTRIBUTE.getHolder(attributeId);
+			if (attribute.isPresent()) {
+				ResourceLocation id;
+				if (ATTACK_DAMAGE.equals(attribute.get())) {
+					id = BASE_ATTACK_DAMAGE_ID;
+				} else if (ATTACK_SPEED.equals(attribute.get())) {
+					id = BASE_ATTACK_SPEED_ID;
+				} else {
+					id = ResourceLocation.fromNamespaceAndPath("dungeonslibs",
+							"weapon." + attributeId.getNamespace() + "." + attributeId.getPath());
 				}
-				builder.put(attribute, new AttributeModifier(uuid, "Weapon modifier",
-						attributeModifier.getAmount(), attributeModifier.getOperation()));
+				builder.add(attribute.get(), new AttributeModifier(id,
+						attributeModifier.getAmount(), attributeModifier.getOperation()), EquipmentSlotGroup.MAINHAND);
 			}
 		});
 		defaultModifiers = builder.build();
-		((ItemAccessor) this).setMaxDamage(bowGearConfig.getDurability());
+		configuredDurability = bowGearConfig.getDurability();
+		ItemMaxDamage.setRarity(this, bowGearConfig.getRarity());
 	}
 
 	public float getDefaultChargeTime() {
@@ -60,14 +65,18 @@ public class BowGear extends BowItem implements IRangedWeapon, IReloadableGear, 
 	}
 
 	@Override
-	public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot pEquipmentSlot) {
-		return pEquipmentSlot == EquipmentSlot.MAINHAND ? defaultModifiers
-				: super.getDefaultAttributeModifiers(pEquipmentSlot);
+	public ItemAttributeModifiers getDefaultAttributeModifiers(ItemStack stack) {
+		return defaultModifiers;
 	}
 
 	@Override
-	public Rarity getRarity(ItemStack pStack) {
-		return getGearConfig().getRarity();
+	public ItemAttributeModifiers getDefaultAttributeModifiers() {
+		return defaultModifiers;
+	}
+
+	@Override
+	public int getMaxDamage(ItemStack stack) {
+		return configuredDurability;
 	}
 
 	@Override
@@ -80,7 +89,7 @@ public class BowGear extends BowItem implements IRangedWeapon, IReloadableGear, 
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Level world, List<Component> list, TooltipFlag flag) {
+	public void appendHoverText(ItemStack stack, Item.TooltipContext world, List<Component> list, TooltipFlag flag) {
 		super.appendHoverText(stack, world, list, flag);
 		DescriptionHelper.addFullDescription(list, stack);
 	}

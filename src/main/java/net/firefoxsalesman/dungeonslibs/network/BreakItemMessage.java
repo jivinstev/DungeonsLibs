@@ -1,19 +1,17 @@
 package net.firefoxsalesman.dungeonslibs.network;
 
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
+import net.firefoxsalesman.dungeonslibs.client.network.BreakItemClientHandler;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.fml.DistExecutor.SafeRunnable;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
 
-import java.util.function.Supplier;
-
-public class BreakItemMessage {
+public class BreakItemMessage implements CustomPacketPayload {
 	private final ItemStack stack;
 	private final int entityID;
 
@@ -22,36 +20,29 @@ public class BreakItemMessage {
 		this.entityID = entityID;
 	}
 
-	public static void encode(BreakItemMessage packet, FriendlyByteBuf buf) {
-		buf.writeInt(packet.entityID);
-		buf.writeItem(packet.stack);
-	}
+	public static final CustomPacketPayload.Type<BreakItemMessage> TYPE =
+			new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("dungeonslibs", "break_item"));
 
-	public static BreakItemMessage decode(FriendlyByteBuf buf) {
-		return new BreakItemMessage(buf.readInt(), buf.readItem());
+	public static final StreamCodec<RegistryFriendlyByteBuf, BreakItemMessage> STREAM_CODEC = StreamCodec.composite(
+			ByteBufCodecs.INT, p -> p.entityID,
+			ItemStack.OPTIONAL_STREAM_CODEC, p -> p.stack,
+			BreakItemMessage::new);
+
+	@Override
+	public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+		return TYPE;
 	}
 
 	public static class BreakItemHandler {
-		public static void handle(BreakItemMessage packet, Supplier<NetworkEvent.Context> ctx) {
+		public static void handle(BreakItemMessage packet, IPayloadContext ctx) {
 			if (packet != null) {
-				ctx.get().enqueueWork(
-						() -> DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> new SafeRunnable() {
-
-							private static final long serialVersionUID = 1;
-
-							@Override
-							public void run() {
-								ClientLevel world = Minecraft.getInstance().level;
-								Entity target = null;
-								if (world != null)
-									target = world.getEntity(packet.entityID);
-								if (target instanceof LivingEntity livingEntity) {
-									livingEntity.breakItem(packet.stack);
-								}
-							}
-
-						}));
+				ctx.enqueueWork(() -> {
+					if (FMLEnvironment.dist == Dist.CLIENT) {
+						BreakItemClientHandler.run(packet.entityID, packet.stack);
+					}
+				});
 			}
 		}
 	}
+
 }

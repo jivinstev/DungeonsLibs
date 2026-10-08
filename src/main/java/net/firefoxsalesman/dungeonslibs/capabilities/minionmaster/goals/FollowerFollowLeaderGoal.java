@@ -8,7 +8,8 @@ import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
+import net.minecraft.world.level.pathfinder.PathfindingContext;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 
 import java.util.EnumSet;
@@ -84,8 +85,8 @@ public class FollowerFollowLeaderGoal extends Goal {
 	 */
 	public void start() {
 		this.timeToRecalcPath = 0;
-		this.oldWaterCost = this.mobEntity.getPathfindingMalus(BlockPathTypes.WATER);
-		this.mobEntity.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
+		this.oldWaterCost = this.mobEntity.getPathfindingMalus(PathType.WATER);
+		this.mobEntity.setPathfindingMalus(PathType.WATER, 0.0F);
 	}
 
 	/**
@@ -95,7 +96,7 @@ public class FollowerFollowLeaderGoal extends Goal {
 	public void stop() {
 		this.owner = null;
 		this.navigator.stop();
-		this.mobEntity.setPathfindingMalus(BlockPathTypes.WATER, this.oldWaterCost);
+		this.mobEntity.setPathfindingMalus(PathType.WATER, this.oldWaterCost);
 	}
 
 	/**
@@ -147,9 +148,9 @@ public class FollowerFollowLeaderGoal extends Goal {
 	}
 
 	private boolean canTeleportTo(BlockPos p_226329_1_) {
-		BlockPathTypes pathnodetype = WalkNodeEvaluator.getBlockPathTypeStatic(this.world,
-				p_226329_1_.mutable());
-		if (pathnodetype != BlockPathTypes.WALKABLE) {
+		PathType pathnodetype = WalkNodeEvaluator.getPathTypeStatic(
+				new PathfindingContext(this.world, this.mobEntity), p_226329_1_.mutable());
+		if (pathnodetype != PathType.WALKABLE) {
 			return false;
 		} else {
 			BlockState blockstate = this.world.getBlockState(p_226329_1_.below());

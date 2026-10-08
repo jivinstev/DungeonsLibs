@@ -1,7 +1,6 @@
 package net.firefoxsalesman.dungeonslibs.capabilities.minionmaster;
 
 import net.firefoxsalesman.dungeonslibs.DungeonsLibs;
-import net.firefoxsalesman.dungeonslibs.capabilities.LibCapabilities;
 import net.firefoxsalesman.dungeonslibs.capabilities.minionmaster.goals.FollowerFollowLeaderGoal;
 import net.firefoxsalesman.dungeonslibs.capabilities.minionmaster.goals.LeaderHurtByTargetGoal;
 import net.firefoxsalesman.dungeonslibs.capabilities.minionmaster.goals.LeaderHurtTargetGoal;
@@ -23,18 +22,18 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.UUID;
 
-import static net.firefoxsalesman.dungeonslibs.capabilities.LibCapabilities.FOLLOWER_CAPABILITY;
-import static net.firefoxsalesman.dungeonslibs.capabilities.LibCapabilities.LEADER_CAPABILITY;
+import static net.firefoxsalesman.dungeonslibs.capabilities.LibCapabilities.FOLLOWER_ATTACHMENT;
+import static net.firefoxsalesman.dungeonslibs.capabilities.LibCapabilities.LEADER_ATTACHMENT;
 import static net.firefoxsalesman.dungeonslibs.utils.PetHelper.canPetAttackEntity;
 
 public class FollowerLeaderHelper {
 
 	public static Leader getLeaderCapability(Entity entity) {
-		return entity.getCapability(LEADER_CAPABILITY).orElse(new Leader());
+		return entity.getData(LEADER_ATTACHMENT.get());
 	}
 
 	public static Follower getFollowerCapability(Entity entity) {
-		return entity.getCapability(FOLLOWER_CAPABILITY).orElse(new Follower());
+		return entity.getData(FOLLOWER_ATTACHMENT.get());
 	}
 
 	@Nullable
@@ -121,9 +120,7 @@ public class FollowerLeaderHelper {
 					(entityIterator) -> AbilityHelper.isDefaultEnemy(entityIterator)
 							&& canPetAttackEntity(mobEntity, entityIterator)));
 
-			minionCap.getLeader().getCapability(LibCapabilities.LEADER_CAPABILITY).ifPresent(leader -> {
-				leader.addFollower(mobEntity);
-			});
+			getLeaderCapability(minionCap.getLeader()).addFollower(mobEntity);
 			SummonHelper.addSummonGoals(mobEntity);
 			minionCap.setGoalsAdded(true);
 		}

@@ -17,8 +17,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
-import net.minecraftforge.client.gui.overlay.ForgeGui;
-import net.minecraftforge.client.gui.overlay.IGuiOverlay;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.gui.LayeredDraw;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
 
@@ -26,7 +26,7 @@ import top.theillusivec4.curios.api.type.inventory.IDynamicStackHandler;
  * Borrowed from Goety. Many thanks to Polarice
  */
 public class ArtifactsBarRenderer {
-	public static final IGuiOverlay OVERLAY = ArtifactsBarRenderer::drawHUD;
+	public static final LayeredDraw.Layer OVERLAY = ArtifactsBarRenderer::drawHUD;
 	private static final Minecraft minecraft = Minecraft.getInstance();
 	private static final ResourceLocation ARTIFACT_BAR_RESOURCE = modLoc("textures/gui/artifact_bar.png");
 
@@ -68,8 +68,9 @@ public class ArtifactsBarRenderer {
 		return minecraft.font;
 	}
 
-	public static void drawHUD(ForgeGui gui, GuiGraphics guiGraphics, float partialTicks, int screenWidth,
-			int screenHeight) {
+	public static void drawHUD(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+		int screenWidth = guiGraphics.guiWidth();
+		int screenHeight = guiGraphics.guiHeight();
 		if (!shouldDisplayBar())
 			return;
 

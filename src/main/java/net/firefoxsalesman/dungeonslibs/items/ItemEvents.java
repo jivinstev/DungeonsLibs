@@ -10,37 +10,37 @@ import net.firefoxsalesman.dungeonslibs.utils.DamageSourceHelper;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
-import net.minecraftforge.event.entity.living.LivingDamageEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@Mod.EventBusSubscriber(modid = DungeonsLibs.MOD_ID)
+@EventBusSubscriber(modid = DungeonsLibs.MOD_ID)
 public class ItemEvents {
 	protected static final UUID BASE_ATTACK_DAMAGE_UUID = UUID.fromString("CB3F55D3-645C-4F38-A497-9C13A33DB5CF");
 	protected static final UUID BASE_ATTACK_SPEED_UUID = UUID.fromString("FA233E1C-4180-4865-B01B-BCCE9785ACA3");
 
 	@SubscribeEvent
-	public static void onMagicDamage(LivingDamageEvent event) {
+	public static void onMagicDamage(LivingDamageEvent.Pre event) {
 		DamageSource source = event.getSource();
-		if (source.isIndirect()
+		if (source.getDirectEntity() != source.getEntity()
 				&& DamageSourceHelper.isSource(source,
 						event.getEntity().damageSources().magic())
 				&&
 				source.getEntity() instanceof LivingEntity) {
 
-			float originalDamage = event.getAmount();
+			float originalDamage = event.getNewDamage();
 
 			LivingEntity attacker = (LivingEntity) event.getSource().getEntity();
 			AttributeInstance magicDamageMultiplierAttribute = attacker
-					.getAttribute(MAGIC_DAMAGE_MULTIPLIER.get());
+					.getAttribute(MAGIC_DAMAGE_MULTIPLIER);
 			double attributeModifier = magicDamageMultiplierAttribute != null
 					? magicDamageMultiplierAttribute.getValue()
 					: 1.0D;
 			double additionalDamage = originalDamage * attributeModifier;
 
 			if (additionalDamage > 0)
-				event.setAmount(originalDamage + (float) additionalDamage);
+				event.setNewDamage(originalDamage + (float) additionalDamage);
 		}
 	}
 
@@ -49,7 +49,7 @@ public class ItemEvents {
 		DamageSource source = event.getSource();
 		if (source.getEntity() instanceof LivingEntity) {
 			LivingEntity attacker = (LivingEntity) source.getEntity();
-			AttributeInstance attribute = attacker.getAttribute(LIFE_STEAL.get());
+			AttributeInstance attribute = attacker.getAttribute(LIFE_STEAL);
 			if (attribute != null) {
 				double lifeStealAmount = attribute.getValue() - 1.0D;
 				float victimMaxHealth = event.getEntity().getMaxHealth();

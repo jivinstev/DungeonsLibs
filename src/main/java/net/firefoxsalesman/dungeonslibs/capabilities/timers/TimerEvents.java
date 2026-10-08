@@ -1,25 +1,27 @@
 package net.firefoxsalesman.dungeonslibs.capabilities.timers;
 
 import net.firefoxsalesman.dungeonslibs.DungeonsLibs;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraft.world.entity.LivingEntity;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
-@Mod.EventBusSubscriber(modid = DungeonsLibs.MOD_ID)
+@EventBusSubscriber(modid = DungeonsLibs.MOD_ID)
 public class TimerEvents {
 
 	@SubscribeEvent
-	public static void onLivingUpdate(LivingEvent.LivingTickEvent event) {
-		Timers timersCapability = TimersHelper.getTimersCapability(event.getEntity());
+	public static void onLivingUpdate(EntityTickEvent.Pre event) {
+	    if (!(event.getEntity() instanceof LivingEntity living)) return;
+		Timers timersCapability = TimersHelper.getTimersCapability(living);
 		timersCapability.tickTimers();
 	}
 
 	@SubscribeEvent
-	public static void onPlayerUpdate(TickEvent.PlayerTickEvent event) {
-		Timers timersCapability = TimersHelper.getTimersCapability(event.player);
-		if (event.phase == TickEvent.Phase.START && !event.player.isSpectator()
-				&& !event.player.level().isClientSide()) {
+	public static void onPlayerUpdate(PlayerTickEvent.Pre event) {
+		Timers timersCapability = TimersHelper.getTimersCapability(event.getEntity());
+		if (!event.getEntity().isSpectator()
+				&& !event.getEntity().level().isClientSide()) {
 			timersCapability.tickTimers();
 		}
 	}

@@ -1,18 +1,18 @@
 package net.firefoxsalesman.dungeonslibs.capabilities.minionmaster;
 
-import net.minecraftforge.event.entity.living.LivingDropsEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.firefoxsalesman.dungeonslibs.DungeonsLibs;
 import net.firefoxsalesman.dungeonslibs.utils.AbilityHelper;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.living.LivingChangeTargetEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.living.LivingChangeTargetEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,11 +20,11 @@ import java.util.stream.Collectors;
 import static net.firefoxsalesman.dungeonslibs.capabilities.minionmaster.FollowerLeaderHelper.getFollowerCapability;
 import static net.firefoxsalesman.dungeonslibs.capabilities.minionmaster.FollowerLeaderHelper.getLeaderCapability;
 
-@Mod.EventBusSubscriber(modid = DungeonsLibs.MOD_ID)
+@EventBusSubscriber(modid = DungeonsLibs.MOD_ID)
 public class FollowerEvents {
 	@SubscribeEvent
 	public static void onSetAttackTarget(LivingChangeTargetEvent event) {
-		LivingEntity target = event.getNewTarget();
+		LivingEntity target = event.getNewAboutToBeSetTarget();
 		LivingEntity attacker = event.getEntity();
 		if (attacker instanceof Mob && target instanceof Mob) {
 			if (AbilityHelper.isAlly(attacker, target)) {
@@ -42,8 +42,9 @@ public class FollowerEvents {
 	}
 
 	@SubscribeEvent
-	public static void onLivingEntityTick(LivingEvent.LivingTickEvent event) {
-		LivingEntity entityLiving = event.getEntity();
+	public static void onLivingEntityTick(EntityTickEvent.Pre event) {
+	    if (!(event.getEntity() instanceof LivingEntity living)) return;
+		LivingEntity entityLiving = living;
 		if (entityLiving.level().isClientSide)
 			return;
 		Follower cap = getFollowerCapability(entityLiving);
@@ -85,13 +86,13 @@ public class FollowerEvents {
 	// in time,
 	// making you unable to summon any more of that entity
 	@SubscribeEvent
-	public static void checkSummonedMobIsDead(TickEvent.PlayerTickEvent event) {
-		Player player = event.player;
-		if (event.phase == TickEvent.Phase.START || event.side == LogicalSide.CLIENT)
+	public static void checkSummonedMobIsDead(PlayerTickEvent.Post event) {
+		Player player = event.getEntity();
+		if (player.level().isClientSide())
 			return;
 		if (!player.isAlive())
 			return;
-		Leader leaderCap = getLeaderCapability(event.player);
+		Leader leaderCap = getLeaderCapability(player);
 		updateAliveList(leaderCap);
 	}
 

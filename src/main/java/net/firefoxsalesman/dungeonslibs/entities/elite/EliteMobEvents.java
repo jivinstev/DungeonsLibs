@@ -1,5 +1,8 @@
 package net.firefoxsalesman.dungeonslibs.entities.elite;
 
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+
 import com.google.common.collect.ImmutableMultimap;
 
 import net.firefoxsalesman.dungeonslibs.DungeonsLibs;
@@ -7,8 +10,8 @@ import net.firefoxsalesman.dungeonslibs.capabilities.elite.EliteMob;
 import net.firefoxsalesman.dungeonslibs.capabilities.elite.EliteMobHelper;
 import net.firefoxsalesman.dungeonslibs.config.DungeonsLibrariesConfig;
 import net.firefoxsalesman.dungeonslibs.network.EliteMobMessage;
-import net.firefoxsalesman.dungeonslibs.network.NetworkHandler;
 import net.minecraft.client.model.EntityModel;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
@@ -19,24 +22,22 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.chunk.ChunkStatus;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.client.event.RenderLivingEvent;
-import net.minecraftforge.event.entity.EntityEvent;
-import net.minecraftforge.event.entity.EntityJoinLevelEvent;
-import net.minecraftforge.event.entity.living.LivingConversionEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.event.RenderLivingEvent;
+import net.neoforged.neoforge.event.entity.EntityEvent;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
+import net.neoforged.neoforge.event.entity.living.LivingConversionEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import static java.util.UUID.randomUUID;
-import static net.minecraftforge.registries.ForgeRegistries.ATTRIBUTES;
 
-@Mod.EventBusSubscriber(modid = DungeonsLibs.MOD_ID)
+@EventBusSubscriber(modid = DungeonsLibs.MOD_ID)
 public class EliteMobEvents {
 	public static final float SIZE_ADJUSTMENT = 1.1F;
 
@@ -52,11 +53,11 @@ public class EliteMobEvents {
 	public static void makeEliteChance(Level level, LivingEntity entity) {
 		EliteMob cap = EliteMobHelper.getEliteMobCapability(entity);
 		EliteMobConfig config = EliteMobConfigRegistry.getRandomConfig(
-				ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()), entity.getRandom());
+				BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()), entity.getRandom());
 		if (!cap.hasSpawned() && config != null) {
 			LevelChunk chunk = level.getChunkSource().getChunkNow(entity.blockPosition().getX() >> 4,
 					entity.blockPosition().getZ() >> 4);
-			if (chunk != null && chunk.getStatus().isOrAfter(ChunkStatus.FULL)
+			if (chunk != null && chunk.getPersistedStatus().isOrAfter(ChunkStatus.FULL)
 					&& entity.getRandom()
 							.nextFloat() < DungeonsLibrariesConfig.ELITE_MOBS_BASE_CHANCE
 									.get()
@@ -72,7 +73,7 @@ public class EliteMobEvents {
 	public static void makeElite(LivingEntity entity) {
 		EliteMob cap = EliteMobHelper.getEliteMobCapability(entity);
 		EliteMobConfig config = EliteMobConfigRegistry.getRandomConfig(
-				ForgeRegistries.ENTITY_TYPES.getKey(entity.getType()), entity.getRandom());
+				BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()), entity.getRandom());
 		if (!cap.hasSpawned() && config != null) {
 			makeElite(entity, config);
 		}
@@ -87,13 +88,12 @@ public class EliteMobEvents {
 		setItemSlot(entity, EquipmentSlot.FEET, config.getFeetItem());
 		setItemSlot(entity, EquipmentSlot.MAINHAND, config.getHandItem());
 		setItemSlot(entity, EquipmentSlot.OFFHAND, config.getOffhandItem());
-		ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
+		ImmutableMultimap.Builder<Holder<Attribute>, AttributeModifier> builder = ImmutableMultimap.builder();
 		config.getAttributes().forEach(attributeModifier -> {
-			Attribute attribute = ATTRIBUTES.getValue(attributeModifier.getAttributeResourceLocation());
-			if (attribute != null) {
-				builder.put(attribute, new AttributeModifier(randomUUID(), "Armor modifier",
+			BuiltInRegistries.ATTRIBUTE.getHolder(attributeModifier.getAttributeResourceLocation()).ifPresent(attribute -> {
+				builder.put(attribute, new AttributeModifier(ResourceLocation.fromNamespaceAndPath("dungeonslibs", "armor_modifier"),
 						attributeModifier.getAmount(), attributeModifier.getOperation()));
-			}
+			});
 		});
 		entity.getAttributes().addTransientAttributeModifiers(builder.build());
 		cap.setElite(true);
@@ -112,10 +112,10 @@ public class EliteMobEvents {
 
 		EliteMob cap = EliteMobHelper.getEliteMobCapability(entity);
 		if (cap.isElite()) {
-			float totalWidth = event.getNewSize().width * SIZE_ADJUSTMENT;
-			float totalHeight = event.getNewSize().height * SIZE_ADJUSTMENT;
-			event.setNewEyeHeight(event.getNewEyeHeight() * SIZE_ADJUSTMENT);
-			event.setNewSize(EntityDimensions.fixed(totalWidth, totalHeight));
+			float totalWidth = event.getNewSize().width() * SIZE_ADJUSTMENT;
+			float totalHeight = event.getNewSize().height() * SIZE_ADJUSTMENT;
+			event.setNewSize(EntityDimensions.fixed(totalWidth, totalHeight)
+					.withEyeHeight(event.getNewSize().eyeHeight() * SIZE_ADJUSTMENT));
 		}
 	}
 
@@ -150,7 +150,7 @@ public class EliteMobEvents {
 		if (player instanceof ServerPlayer && target instanceof LivingEntity) {
 			EliteMob cap = EliteMobHelper.getEliteMobCapability(event.getTarget());
 			if (cap.isElite()) {
-				NetworkHandler.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) player),
+				PacketDistributor.sendToPlayer((ServerPlayer) player,
 						new EliteMobMessage(target.getId(), cap.isElite(), cap.getTexture()));
 			}
 		}

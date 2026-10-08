@@ -12,17 +12,14 @@ import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.fml.LogicalSide;
-import net.minecraftforge.network.NetworkEvent;
-
-import java.util.function.Supplier;
+import net.minecraft.network.protocol.PacketFlow;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class ClientHandler {
 	public static void handleCuriosArtifactStopMessage(CuriosArtifactStopMessage packet,
-			Supplier<NetworkEvent.Context> ctx) {
+			IPayloadContext context) {
 		if (packet != null) {
-			NetworkEvent.Context context = ctx.get();
-			if (context.getDirection().getReceptionSide() == LogicalSide.CLIENT) {
+			if (context.flow() == PacketFlow.CLIENTBOUND) {
 				context.enqueueWork(() -> {
 					AbstractClientPlayer player = Minecraft.getInstance().player;
 					if (player != null) {
@@ -41,9 +38,8 @@ public class ClientHandler {
 	}
 
 	public static void handleEliteMobMessage(EliteMobMessage message,
-			Supplier<NetworkEvent.Context> contextSupplier) {
-		NetworkEvent.Context context = contextSupplier.get();
-		if (context.getDirection().getReceptionSide() == LogicalSide.CLIENT) {
+			IPayloadContext context) {
+		if (context.flow() == PacketFlow.CLIENTBOUND) {
 			context.enqueueWork(() -> {
 				Entity entity = Minecraft.getInstance().player.level().getEntity(message.getEntityId());
 				if (entity instanceof LivingEntity) {

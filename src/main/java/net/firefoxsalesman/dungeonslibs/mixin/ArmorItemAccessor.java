@@ -1,6 +1,7 @@
 package net.firefoxsalesman.dungeonslibs.mixin;
 
 import net.minecraft.world.item.ArmorItem;
+import net.minecraft.core.Holder;
 import net.minecraft.world.item.ArmorMaterial;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
@@ -11,17 +12,5 @@ public interface ArmorItemAccessor {
 
 	@Accessor
 	@Mutable
-	void setMaterial(ArmorMaterial armorMaterial);
-
-	@Accessor
-	@Mutable
-	void setDefense(int defense);
-
-	@Accessor
-	@Mutable
-	void setToughness(float toughness);
-
-	@Accessor
-	@Mutable
-	void setKnockbackResistance(float knockbackResistance);
+	void setMaterial(Holder<ArmorMaterial> armorMaterial);
 }

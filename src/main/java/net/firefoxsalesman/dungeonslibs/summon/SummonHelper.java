@@ -1,5 +1,7 @@
 package net.firefoxsalesman.dungeonslibs.summon;
 
+import net.minecraft.core.registries.BuiltInRegistries;
+
 import net.firefoxsalesman.dungeonslibs.capabilities.minionmaster.Follower;
 import net.firefoxsalesman.dungeonslibs.capabilities.minionmaster.Leader;
 import net.firefoxsalesman.dungeonslibs.capabilities.minionmaster.Master;
@@ -10,9 +12,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import static net.firefoxsalesman.dungeonslibs.attribute.AttributeRegistry.SUMMON_CAP;
 import static net.firefoxsalesman.dungeonslibs.capabilities.minionmaster.FollowerLeaderHelper.*;
@@ -29,11 +31,11 @@ public class SummonHelper {
 	}
 
 	private static boolean canSummonMob(LivingEntity leader, Entity beeEntity, Leader leaderCap) {
-		AttributeInstance summonCapAttribute = leader.getAttribute(SUMMON_CAP.get());
+		AttributeInstance summonCapAttribute = leader.getAttribute(SUMMON_CAP);
 		if (summonCapAttribute == null)
 			return false;
 		return leaderCap.getSummonedMobsCost() + SummonConfigRegistry
-				.getConfig(ForgeRegistries.ENTITY_TYPES.getKey(beeEntity.getType()))
+				.getConfig(BuiltInRegistries.ENTITY_TYPE.getKey(beeEntity.getType()))
 				.getCost() <= summonCapAttribute.getValue();
 	}
 
@@ -42,7 +44,7 @@ public class SummonHelper {
 	}
 
 	public static boolean canSummonMob(LivingEntity master, Leader leaderCap) {
-		AttributeInstance summonCostLimitAttribute = master.getAttribute(SUMMON_CAP.get());
+		AttributeInstance summonCostLimitAttribute = master.getAttribute(SUMMON_CAP);
 		if (summonCostLimitAttribute == null)
 			return false;
 		return leaderCap.getSummonedMobsCost() < summonCostLimitAttribute.getValue();
@@ -77,7 +79,7 @@ public class SummonHelper {
 		Follower followerCap = getFollowerCapability(mobEntity);
 		if (followerCap.isSummon()) {
 			SummonConfig config = SummonConfigRegistry
-					.getConfig(ForgeRegistries.ENTITY_TYPES.getKey(mobEntity.getType()));
+					.getConfig(BuiltInRegistries.ENTITY_TYPE.getKey(mobEntity.getType()));
 			if (config.shouldAddAttackGoal()) {
 				addSummonAttackGoal(mobEntity);
 			}
@@ -89,8 +91,9 @@ public class SummonHelper {
 		if (attribute == null)
 			return;
 		if (attribute.getValue() == 0) {
-			attribute.addTransientModifier(new AttributeModifier("Summon Attack Damage", 1,
-					AttributeModifier.Operation.ADDITION));
+			attribute.addTransientModifier(new AttributeModifier(
+					ResourceLocation.fromNamespaceAndPath("dungeonslibs", "summon_attack_damage"), 1,
+					AttributeModifier.Operation.ADD_VALUE));
 		}
 		mobEntity.goalSelector.addGoal(1, new MeleeAttackGoal((PathfinderMob) mobEntity, 1.0D, true));
 	}

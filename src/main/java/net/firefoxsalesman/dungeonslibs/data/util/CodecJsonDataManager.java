@@ -35,11 +35,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.OnDatapackSyncEvent;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.network.PacketDistributor.PacketTarget;
-import net.minecraftforge.network.simple.SimpleChannel;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.OnDatapackSyncEvent;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -135,9 +134,8 @@ public class CodecJsonDataManager<T> extends SimpleJsonResourceReloadListener {
 			// if we fail to parse json, log an error and continue
 			// if we succeeded, add the resulting T to the map
 			codec.decode(JsonOps.INSTANCE, element)
-					.get()
-					.ifLeft(result -> newMap.put(key, result.getFirst()))
-					.ifRight(partial -> LOGGER.error("Failed to parse data json for {} due to: {}",
+					.ifSuccess(result -> newMap.put(key, result.getFirst()))
+					.ifError(partial -> LOGGER.error("Failed to parse data json for {} due to: {}",
 							key, partial.message()));
 		}
 
@@ -158,24 +156,25 @@ public class CodecJsonDataManager<T> extends SimpleJsonResourceReloadListener {
 	 *                      channel
 	 * @return this manager object
 	 */
-	public <PACKET> CodecJsonDataManager<T> subscribeAsSyncable(final SimpleChannel channel,
+	public <PACKET extends CustomPacketPayload> CodecJsonDataManager<T> subscribeAsSyncable(
 			final Function<Map<ResourceLocation, T>, PACKET> packetFactory) {
-		MinecraftForge.EVENT_BUS.addListener(getDatapackSyncListener(channel, packetFactory));
+		NeoForge.EVENT_BUS.addListener(getDatapackSyncListener(packetFactory));
 		return this;
 	}
 
 	/**
 	 * Generate an event listener function for the on-datapack-sync event
 	 **/
-	private <PACKET> Consumer<OnDatapackSyncEvent> getDatapackSyncListener(final SimpleChannel channel,
+	private <PACKET extends CustomPacketPayload> Consumer<OnDatapackSyncEvent> getDatapackSyncListener(
 			final Function<Map<ResourceLocation, T>, PACKET> packetFactory) {
 		return event -> {
 			ServerPlayer player = event.getPlayer();
 			PACKET packet = packetFactory.apply(data);
-			PacketTarget target = player == null
-					? PacketDistributor.ALL.noArg()
-					: PacketDistributor.PLAYER.with(() -> player);
-			channel.send(target, packet);
+			if (player == null) {
+				PacketDistributor.sendToAllPlayers(packet);
+			} else {
+				PacketDistributor.sendToPlayer(player, packet);
+			}
 		};
 	}
 }

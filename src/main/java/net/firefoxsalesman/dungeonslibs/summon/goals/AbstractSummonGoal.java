@@ -1,5 +1,7 @@
 package net.firefoxsalesman.dungeonslibs.summon.goals;
 
+import net.minecraft.core.registries.BuiltInRegistries;
+
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -26,7 +28,6 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.scores.Scoreboard;
-import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraft.world.phys.HitResult;
 
 /**
@@ -151,7 +152,7 @@ public abstract class AbstractSummonGoal<T extends Mob> extends Goal {
 		summonedMob.setTarget(target);
 		summonedMob.finalizeSpawn(((ServerLevel) mob.level()),
 				mob.level().getCurrentDifficultyAt(summonPos),
-				MobSpawnType.MOB_SUMMONED, null, null);
+				MobSpawnType.MOB_SUMMONED, null);
 		if (summonPrepSound.isPresent())
 			mobSummonSpot.playSound(summonPrepSound.get(), 1.0F, 1.0F);
 		if (mob.getTeam() != null) {
@@ -175,7 +176,7 @@ public abstract class AbstractSummonGoal<T extends Mob> extends Goal {
 
 			int randomIndex = mob.getRandom().nextInt(necromancerMobSummons.size());
 			String randomMobID = necromancerMobSummons.get(randomIndex);
-			entityType = ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation(randomMobID));
+			entityType = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.parse(randomMobID));
 		}
 		if (entityType == null) {
 			entityType = backupEntityType;

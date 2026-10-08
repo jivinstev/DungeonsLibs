@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 
@@ -32,7 +33,8 @@ public class VanillaPulsatingGlowLayer<T extends Entity & KeyframeEntity, M exte
 			float pNetHeadYaw, float pHeadPitch) {
 		float glow = Math.max(minimumPulseAmount, Mth.cos(pLivingEntity.tickCount * pulseSpeed) * pulseAmount);
 		VertexConsumer vertexconsumer = pBuffer.getBuffer(this.renderType());
+		int channel = Mth.clamp((int) (glow * 255.0F), 0, 255);
 		this.getParentModel().renderToBuffer(pMatrixStack, vertexconsumer, 15728640, OverlayTexture.NO_OVERLAY,
-				glow, glow, glow, 1.0F);
+				FastColor.ARGB32.color(255, channel, channel, channel));
 	}
 }

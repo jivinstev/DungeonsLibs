@@ -13,12 +13,11 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.ArmorMaterial;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.cache.object.GeoCube;
 import software.bernie.geckolib.renderer.GeoArmorRenderer;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
-import software.bernie.geckolib.util.RenderUtils;
+import software.bernie.geckolib.util.RenderUtil;
 
 public class ArmorGearRenderer<T extends ArmorGear> extends GeoArmorRenderer<T> {
 	public ArmorGearRenderer() {
@@ -32,37 +31,36 @@ public class ArmorGearRenderer<T extends ArmorGear> extends GeoArmorRenderer<T> 
 	@Override
 	public void renderRecursively(PoseStack poseStack, T animatable, GeoBone bone, RenderType renderType,
 			MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-			int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+			int packedLight, int packedOverlay, int colour) {
 		poseStack.pushPose();
 		prepMatrixForBone(poseStack, bone);
-		renderCubesOfBone(poseStack, bone, buffer, packedLight, packedOverlay, red, green, blue, alpha);
+		renderCubesOfBone(poseStack, bone, buffer, packedLight, packedOverlay, colour);
 		// renderChildBones(bone, poseStack, buffer, packedLight, packedOverlay, red,
 		// green, blue, alpha);
 		renderChildBones(poseStack, animatable, bone, renderType, bufferSource, buffer, isReRender, partialTick,
-				packedLight, packedOverlay, red, green, blue, alpha);
+				packedLight, packedOverlay, colour);
 		poseStack.popPose();
 	}
 
 	public void prepMatrixForBone(PoseStack stack, GeoBone bone) {
-		RenderUtils.translateMatrixToBone(stack, bone);
-		RenderUtils.translateToPivotPoint(stack, bone);
+		RenderUtil.translateMatrixToBone(stack, bone);
+		RenderUtil.translateToPivotPoint(stack, bone);
 		EntityRenderer<? super LivingEntity> entityRenderer = Minecraft.getInstance()
 				.getEntityRenderDispatcher().getRenderer(getCurrentEntity());
 		if (!(entityRenderer instanceof GeoEntityRenderer) || !bone.getName().contains("armor")) {
-			RenderUtils.rotateMatrixAroundBone(stack, bone);
+			RenderUtil.rotateMatrixAroundBone(stack, bone);
 		}
-		RenderUtils.scaleMatrixForBone(stack, bone);
-		ArmorMaterial material = getAnimatable().getMaterial();
+		RenderUtil.scaleMatrixForBone(stack, bone);
+		Object material = getAnimatable().getMaterial().value();
 		if (bone.getName().contains("Body") && material instanceof DungeonsArmorMaterial
 				&& ((DungeonsArmorMaterial) material).getBaseType() == ArmorMaterialBaseType.CLOTH) {
 			stack.scale(1.0F, 1.0F, 0.93F);
 		}
-		RenderUtils.translateAwayFromPivotPoint(stack, bone);
+		RenderUtil.translateAwayFromPivotPoint(stack, bone);
 	}
 
 	@Override
-	public void renderCubesOfBone(PoseStack poseStack, GeoBone bone, VertexConsumer buffer, int packedLight,
-			int packedOverlay, float red, float green, float blue, float alpha) {
+	public void renderCubesOfBone(PoseStack poseStack, GeoBone bone, VertexConsumer buffer, int packedLight, int packedOverlay, int colour) {
 		if (bone.isHidden())
 			return;
 
@@ -75,11 +73,9 @@ public class ArmorGearRenderer<T extends ArmorGear> extends GeoArmorRenderer<T> 
 								.getRegistryName() == getAnimatable().getArmorSet()) {
 					renderCube(poseStack, cube, buffer, packedLight,
 							LivingEntityRenderer.getOverlayCoords(
-									(LivingEntity) getCurrentEntity(), 0.0F),
-							red, green, blue, alpha);
+									(LivingEntity) getCurrentEntity(), 0.0F), colour);
 				} else {
-					renderCube(poseStack, cube, buffer, packedLight, packedOverlay, red, green,
-							blue, alpha);
+					renderCube(poseStack, cube, buffer, packedLight, packedOverlay, colour);
 				}
 				poseStack.popPose();
 			}

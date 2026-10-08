@@ -1,29 +1,29 @@
 package net.firefoxsalesman.dungeonslibs.config;
 
 import com.google.common.collect.Lists;
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.List;
 
 public class DungeonsLibrariesConfig {
-	public static ForgeConfigSpec.ConfigValue<Boolean> ENABLE_AREA_OF_EFFECT_ON_OTHER_PLAYERS;
-	public static ForgeConfigSpec.ConfigValue<Integer> SOUL_BAR_VERTICAL_OFFSET;
-	public static ForgeConfigSpec.ConfigValue<Integer> SOUL_BAR_HORIZONTAL_OFFSET;
-	public static ForgeConfigSpec.ConfigValue<Integer> ARTIFACT_BAR_VERTICAL_OFFSET;
-	public static ForgeConfigSpec.ConfigValue<Integer> ARTIFACT_BAR_HORIZONTAL_OFFSET;
-	public static ForgeConfigSpec.ConfigValue<Boolean> ENABLE_KEEP_SOULS_ON_DEATH;
-	public static ForgeConfigSpec.ConfigValue<Boolean> ENABLE_DUAL_WIELDING;
-	public static ForgeConfigSpec.ConfigValue<Boolean> ENABLE_TWO_HANDED_WEAPON;
-	public static ForgeConfigSpec.ConfigValue<List<? extends String>> ENEMY_BLACKLIST;
-	public static ForgeConfigSpec.ConfigValue<Boolean> ENABLE_ELITE_MOBS;
-	public static ForgeConfigSpec.ConfigValue<Double> ELITE_MOBS_BASE_CHANCE;
-	public static ForgeConfigSpec.ConfigValue<List<? extends String>> ENEMY_WHITELIST;
-	public static ForgeConfigSpec.ConfigValue<Boolean> ENABLE_TARGETS_BASED_ON_GOALS;
+	public static ModConfigSpec.ConfigValue<Boolean> ENABLE_AREA_OF_EFFECT_ON_OTHER_PLAYERS;
+	public static ModConfigSpec.ConfigValue<Integer> SOUL_BAR_VERTICAL_OFFSET;
+	public static ModConfigSpec.ConfigValue<Integer> SOUL_BAR_HORIZONTAL_OFFSET;
+	public static ModConfigSpec.ConfigValue<Integer> ARTIFACT_BAR_VERTICAL_OFFSET;
+	public static ModConfigSpec.ConfigValue<Integer> ARTIFACT_BAR_HORIZONTAL_OFFSET;
+	public static ModConfigSpec.ConfigValue<Boolean> ENABLE_KEEP_SOULS_ON_DEATH;
+	public static ModConfigSpec.ConfigValue<Boolean> ENABLE_DUAL_WIELDING;
+	public static ModConfigSpec.ConfigValue<Boolean> ENABLE_TWO_HANDED_WEAPON;
+	public static ModConfigSpec.ConfigValue<List<? extends String>> ENEMY_BLACKLIST;
+	public static ModConfigSpec.ConfigValue<Boolean> ENABLE_ELITE_MOBS;
+	public static ModConfigSpec.ConfigValue<Double> ELITE_MOBS_BASE_CHANCE;
+	public static ModConfigSpec.ConfigValue<List<? extends String>> ENEMY_WHITELIST;
+	public static ModConfigSpec.ConfigValue<Boolean> ENABLE_TARGETS_BASED_ON_GOALS;
 
 	public static class Common {
 
-		public Common(ForgeConfigSpec.Builder builder) {
+		public Common(ModConfigSpec.Builder builder) {
 
 			builder.comment("Combat Configuration").push("combat_configuration");
 			ENABLE_AREA_OF_EFFECT_ON_OTHER_PLAYERS = builder
@@ -93,11 +93,11 @@ public class DungeonsLibrariesConfig {
 		}
 	}
 
-	public static final ForgeConfigSpec COMMON_SPEC;
+	public static final ModConfigSpec COMMON_SPEC;
 	public static final Common COMMON;
 
 	static {
-		final Pair<Common, ForgeConfigSpec> commonSpecPair = new ForgeConfigSpec.Builder()
+		final Pair<Common, ModConfigSpec> commonSpecPair = new ModConfigSpec.Builder()
 				.configure(Common::new);
 		COMMON_SPEC = commonSpecPair.getRight();
 		COMMON = commonSpecPair.getLeft();

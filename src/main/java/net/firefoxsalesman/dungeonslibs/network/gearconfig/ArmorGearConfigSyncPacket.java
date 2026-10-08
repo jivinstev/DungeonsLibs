@@ -7,16 +7,22 @@ import net.firefoxsalesman.dungeonslibs.items.gearconfig.ArmorGearConfigRegistry
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.network.NetworkEvent;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Supplier;
 
 import static net.firefoxsalesman.dungeonslibs.items.GearConfigReloadListener.reloadAllItems;
 
-public class ArmorGearConfigSyncPacket {
+public class ArmorGearConfigSyncPacket implements CustomPacketPayload {
+	public static final CustomPacketPayload.Type<ArmorGearConfigSyncPacket> TYPE =
+			new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("dungeonslibs", "armor_gear_config_sync"));
+	public static final StreamCodec<FriendlyByteBuf, ArmorGearConfigSyncPacket> STREAM_CODEC =
+			StreamCodec.ofMember(ArmorGearConfigSyncPacket::encode, ArmorGearConfigSyncPacket::decode);
+
 	private static final Codec<Map<ResourceLocation, ArmorGearConfig>> MAPPER = Codec
 			.unboundedMap(ResourceLocation.CODEC, ArmorGearConfig.CODEC);
 
@@ -36,10 +42,13 @@ public class ArmorGearConfigSyncPacket {
 				MAPPER.parse(NbtOps.INSTANCE, buffer.readNbt()).result().orElse(new HashMap<>()));
 	}
 
-	public void onPacketReceived(Supplier<NetworkEvent.Context> contextGetter) {
-		NetworkEvent.Context context = contextGetter.get();
+	@Override
+	public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+		return TYPE;
+	}
+
+	public void handle(IPayloadContext context) {
 		context.enqueueWork(this::handlePacketOnMainThread);
-		context.setPacketHandled(true);
 	}
 
 	private void handlePacketOnMainThread() {

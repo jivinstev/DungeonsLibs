@@ -7,7 +7,7 @@ import net.minecraft.client.renderer.item.ItemPropertyFunction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.*;
-import net.minecraftforge.registries.RegistryObject;
+import java.util.function.Supplier;
 
 import java.util.Map;
 
@@ -15,9 +15,9 @@ import static net.firefoxsalesman.dungeonslibs.utils.RangedAttackHelper.getCross
 
 public class RangedItemModelProperties {
 
-	private static final ResourceLocation PULL_PROPERTY = new ResourceLocation("pull");
-	private static final ResourceLocation PULLING_PROPERTY = new ResourceLocation("pulling");
-	private static final ResourceLocation CHARGED_PROPERTY = new ResourceLocation("charged");
+	private static final ResourceLocation PULL_PROPERTY = ResourceLocation.parse("pull");
+	private static final ResourceLocation PULLING_PROPERTY = ResourceLocation.parse("pulling");
+	private static final ResourceLocation CHARGED_PROPERTY = ResourceLocation.parse("charged");
 
 	public static void init() {
 		Map<Item, Map<ResourceLocation, ItemPropertyFunction>> itemModelsProperties = ItemProperties.PROPERTIES;
@@ -40,7 +40,7 @@ public class RangedItemModelProperties {
 		}
 	}
 
-	public static void addRangedModelProperties(RegistryObject<Item> itemRegistryObject) {
+	public static void addRangedModelProperties(Supplier<Item> itemRegistryObject) {
 		if (itemRegistryObject.get() instanceof BowItem) {
 			addBowModelProperties(itemRegistryObject);
 		} else if (itemRegistryObject.get() instanceof CrossbowItem) {
@@ -48,14 +48,14 @@ public class RangedItemModelProperties {
 		}
 	}
 
-	public static void addBowModelProperties(RegistryObject<Item> itemRegistryObject) {
+	public static void addBowModelProperties(Supplier<Item> itemRegistryObject) {
 		ItemProperties.register(itemRegistryObject.get(), PULL_PROPERTY,
 				RangedItemModelProperties::getBowPullProperty);
 		ItemProperties.register(itemRegistryObject.get(), PULLING_PROPERTY,
 				RangedItemModelProperties::getBowPullingProperty);
 	}
 
-	public static void addCrossbowModelProperties(RegistryObject<Item> itemRegistryObject) {
+	public static void addCrossbowModelProperties(Supplier<Item> itemRegistryObject) {
 		ItemProperties.register(itemRegistryObject.get(), PULL_PROPERTY,
 				RangedItemModelProperties::getCrossbowPullProperty);
 		ItemProperties.register(itemRegistryObject.get(), PULLING_PROPERTY,
@@ -69,7 +69,7 @@ public class RangedItemModelProperties {
 		if (livingEntity == null || CrossbowItem.isCharged(stack)) {
 			return 0.0F;
 		} else
-			return (stack.getUseDuration() - livingEntity.getUseItemRemainingTicks())
+			return (stack.getUseDuration(livingEntity) - livingEntity.getUseItemRemainingTicks())
 					/ getCrossbowChargeTime(livingEntity, stack);
 	}
 
@@ -91,7 +91,7 @@ public class RangedItemModelProperties {
 		if (livingEntity == null || livingEntity.getUseItem() != stack) {
 			return 0.0F;
 		} else {
-			return (stack.getUseDuration() - livingEntity.getUseItemRemainingTicks())
+			return (stack.getUseDuration(livingEntity) - livingEntity.getUseItemRemainingTicks())
 					/ RangedAttackHelper.getBowChargeTime(livingEntity, livingEntity.getUseItem());
 		}
 	}

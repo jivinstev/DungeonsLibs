@@ -1,5 +1,7 @@
 package net.firefoxsalesman.dungeonslibs.capabilities.builtinenchantments;
 
+import net.minecraft.core.registries.Registries;
+
 import com.google.common.collect.Lists;
 
 import net.firefoxsalesman.dungeonslibs.items.gearconfig.ArmorGear;
@@ -12,15 +14,13 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.util.INBTSerializable;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.resources.ResourceKey;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static net.firefoxsalesman.dungeonslibs.capabilities.LibCapabilities.BUILT_IN_ENCHANTMENTS_CAPABILITY;
 
 public class BuiltInEnchantments implements INBTSerializable<CompoundTag> {
 	private final Map<ResourceLocation, List<EnchantmentInstance>> enchantments = new HashMap<>();
@@ -44,7 +44,7 @@ public class BuiltInEnchantments implements INBTSerializable<CompoundTag> {
 		if (itemStack.getItem() instanceof ArmorGear item) {
 			List<EnchantmentInstance> builtInEnchantments = item.getGearConfig().getBuiltInEnchantments()
 					.stream()
-					.filter(enchantmentInstance -> enchantmentInstance.enchantment
+					.filter(enchantmentInstance -> enchantmentInstance.enchantment.value()
 							.canEnchant(itemStack))
 					.toList();
 			enchantments.put(MeleeGearConfigRegistry.GEAR_CONFIG_BUILTIN_RESOURCELOCATION,
@@ -65,7 +65,7 @@ public class BuiltInEnchantments implements INBTSerializable<CompoundTag> {
 		}
 		enchantments.put(source,
 				enchantments.get(source).stream().filter(
-						enchantmentInstance -> enchantmentInstance.enchantment != enchantment)
+						enchantmentInstance -> enchantmentInstance.enchantment.value() != enchantment)
 						.collect(Collectors.toList()));
 		return true;
 	}
@@ -108,12 +108,12 @@ public class BuiltInEnchantments implements INBTSerializable<CompoundTag> {
 
 	public boolean hasBuiltInEnchantment(Enchantment enchantment) {
 		return getAllBuiltInEnchantmentInstances().stream()
-				.anyMatch(enchantmentInstance -> enchantmentInstance.enchantment.equals(enchantment));
+				.anyMatch(enchantmentInstance -> enchantmentInstance.enchantment.value().equals(enchantment));
 	}
 
 	public int getBuiltInItemEnchantmentLevel(Enchantment enchantment) {
 		return getAllBuiltInEnchantmentInstances().stream()
-				.filter(enchantmentInstance -> enchantmentInstance.enchantment.equals(enchantment))
+				.filter(enchantmentInstance -> enchantmentInstance.enchantment.value().equals(enchantment))
 				.map(enchantmentInstance -> enchantmentInstance.level).max(Comparator.naturalOrder())
 				.orElse(0);
 	}
@@ -123,10 +123,7 @@ public class BuiltInEnchantments implements INBTSerializable<CompoundTag> {
 	public static final String ENCHANTMENT_DATA_KEY = "data";
 
 	@Override
-	public CompoundTag serializeNBT() {
-		if (BUILT_IN_ENCHANTMENTS_CAPABILITY == null) {
-			return new CompoundTag();
-		}
+	public CompoundTag serializeNBT(HolderLookup.Provider provider) {
 		CompoundTag tag = new CompoundTag();
 		ListTag listnbt = new ListTag();
 		getAllBuiltInEnchantmentInstancesPerSource().forEach((resourceLocation, enchantmentInstances) -> {
@@ -136,7 +133,7 @@ public class BuiltInEnchantments implements INBTSerializable<CompoundTag> {
 			enchantmentInstances.forEach(enchantmentInstance -> {
 				CompoundTag enchantmentInstanceNBT = new CompoundTag();
 				enchantmentInstanceNBT.putString("id", String.valueOf(
-						ForgeRegistries.ENCHANTMENTS.getKey(enchantmentInstance.enchantment)));
+						enchantmentInstance.enchantment.unwrapKey().map(ResourceKey::location).orElse(null)));
 				enchantmentInstanceNBT.putShort("lvl", (short) enchantmentInstance.level);
 				enchantmentListnbt.add(enchantmentInstanceNBT);
 			});
@@ -150,20 +147,26 @@ public class BuiltInEnchantments implements INBTSerializable<CompoundTag> {
 	}
 
 	@Override
-	public void deserializeNBT(CompoundTag tag) {
+	public void deserializeNBT(HolderLookup.Provider provider, CompoundTag tag) {
 		if (tag.contains(ENCHANTS_KEY, 10)) {
 			ListTag listNBT = tag.getList(ENCHANTS_KEY, 10);
+			HolderLookup.RegistryLookup<Enchantment> enchantmentLookup = provider.lookupOrThrow(Registries.ENCHANTMENT);
 			for (int i = 0; i < listNBT.size(); ++i) {
 				CompoundTag compoundnbt = listNBT.getCompound(i);
 				ResourceLocation resourcelocation = ResourceLocation
 						.tryParse(compoundnbt.getString(SOURCE_KEY));
-				ListTag enchantmentListnbt = new ListTag();
-				Map<Enchantment, Integer> enchantmentIntegerMap = EnchantmentHelper
-						.deserializeEnchantments(compoundnbt.getList(ENCHANTMENT_DATA_KEY, 10));
-				List<EnchantmentInstance> enchantmentInstanceList = enchantmentIntegerMap.entrySet()
-						.stream()
-						.map(entry -> new EnchantmentInstance(entry.getKey(), entry.getValue()))
-						.collect(Collectors.toList());
+				List<EnchantmentInstance> enchantmentInstanceList = new ArrayList<>();
+				ListTag enchantmentListnbt = compoundnbt.getList(ENCHANTMENT_DATA_KEY, 10);
+				for (int j = 0; j < enchantmentListnbt.size(); ++j) {
+					CompoundTag enchantmentNBT = enchantmentListnbt.getCompound(j);
+					ResourceLocation enchantmentId = ResourceLocation.tryParse(enchantmentNBT.getString("id"));
+					if (enchantmentId == null) {
+						continue;
+					}
+					short level = enchantmentNBT.getShort("lvl");
+					enchantmentLookup.get(ResourceKey.create(Registries.ENCHANTMENT, enchantmentId))
+							.ifPresent(holder -> enchantmentInstanceList.add(new EnchantmentInstance(holder, level)));
+				}
 				setBuiltInEnchantments(resourcelocation, enchantmentInstanceList);
 			}
 		}

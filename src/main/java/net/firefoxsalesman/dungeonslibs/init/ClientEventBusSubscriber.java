@@ -1,16 +1,16 @@
 package net.firefoxsalesman.dungeonslibs.init;
 
-import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import static net.minecraftforge.api.distmarker.Dist.CLIENT;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import static net.neoforged.api.distmarker.Dist.CLIENT;
 
 import net.firefoxsalesman.dungeonslibs.DungeonsLibs;
 import net.firefoxsalesman.dungeonslibs.client.renderer.SoulOrbRenderer;
 import net.firefoxsalesman.dungeonslibs.client.renderer.SummonSpotRenderer;
 import net.firefoxsalesman.dungeonslibs.entities.LibEntityTypes;
 
-@Mod.EventBusSubscriber(modid = DungeonsLibs.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = CLIENT)
+@EventBusSubscriber(modid = DungeonsLibs.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = CLIENT)
 public class ClientEventBusSubscriber {
 
 	@SubscribeEvent

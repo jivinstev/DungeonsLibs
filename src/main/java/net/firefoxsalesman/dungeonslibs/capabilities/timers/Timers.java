@@ -1,6 +1,6 @@
 package net.firefoxsalesman.dungeonslibs.capabilities.timers;
 
-import static net.firefoxsalesman.dungeonslibs.capabilities.LibCapabilities.TIMERS_CAPABILITY;
+import net.minecraft.core.registries.Registries;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,19 +9,20 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.util.INBTSerializable;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 
 public class Timers implements INBTSerializable<CompoundTag> {
 	private final Map<ResourceLocation, Integer> enchantmentTimers = new HashMap<>();
 
-	public int getEnchantmentTimer(Enchantment enchantment) {
-		return enchantmentTimers.computeIfAbsent(ForgeRegistries.ENCHANTMENTS.getKey(enchantment),
+	public int getEnchantmentTimer(RegistryAccess registries, Enchantment enchantment) {
+		return enchantmentTimers.computeIfAbsent(registries.registryOrThrow(Registries.ENCHANTMENT).getKey(enchantment),
 				resourceLocation -> -1);
 	}
 
-	public boolean setEnchantmentTimer(Enchantment enchantment, int value) {
-		enchantmentTimers.put(ForgeRegistries.ENCHANTMENTS.getKey(enchantment), value);
+	public boolean setEnchantmentTimer(RegistryAccess registries, Enchantment enchantment, int value) {
+		enchantmentTimers.put(registries.registryOrThrow(Registries.ENCHANTMENT).getKey(enchantment), value);
 		return true;
 	}
 
@@ -44,10 +45,7 @@ public class Timers implements INBTSerializable<CompoundTag> {
 	public static final String TIMER_KEY = "Timer";
 
 	@Override
-	public CompoundTag serializeNBT() {
-		if (TIMERS_CAPABILITY == null) {
-			return new CompoundTag();
-		}
+	public CompoundTag serializeNBT(HolderLookup.Provider provider) {
 		CompoundTag tag = new CompoundTag();
 		ListTag listnbt = new ListTag();
 		this.getEnchantmentTimers().forEach((resourceLocation, timer) -> {
@@ -61,7 +59,7 @@ public class Timers implements INBTSerializable<CompoundTag> {
 	}
 
 	@Override
-	public void deserializeNBT(CompoundTag tag) {
+	public void deserializeNBT(HolderLookup.Provider provider, CompoundTag tag) {
 		ListTag listNBT = tag.getList(ENCHANTS_KEY, 10);
 		for (int i = 0; i < listNBT.size(); ++i) {
 			CompoundTag compoundnbt = listNBT.getCompound(i);

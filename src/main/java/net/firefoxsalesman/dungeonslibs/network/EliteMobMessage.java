@@ -3,11 +3,16 @@ package net.firefoxsalesman.dungeonslibs.network;
 import net.firefoxsalesman.dungeonslibs.network.client.ClientHandler;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.function.Supplier;
+public class EliteMobMessage implements CustomPacketPayload {
+	public static final CustomPacketPayload.Type<EliteMobMessage> TYPE =
+			new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath("dungeonslibs", "elite_mob"));
+	public static final StreamCodec<FriendlyByteBuf, EliteMobMessage> STREAM_CODEC =
+			StreamCodec.of((buf, msg) -> msg.encode(buf), EliteMobMessage::decode);
 
-public class EliteMobMessage {
 	private final int entityId;
 	private final boolean isElite;
 	private final ResourceLocation texture;
@@ -32,9 +37,13 @@ public class EliteMobMessage {
 		return new EliteMobMessage(entityId, isElite, texture);
 	}
 
-	public static void handle(EliteMobMessage message, Supplier<NetworkEvent.Context> contextSupplier) {
-		ClientHandler.handleEliteMobMessage(message, contextSupplier);
-		contextSupplier.get().setPacketHandled(true);
+	@Override
+	public CustomPacketPayload.Type<? extends CustomPacketPayload> type() {
+		return TYPE;
+	}
+
+	public void handle(IPayloadContext ctx) {
+		ClientHandler.handleEliteMobMessage(this, ctx);
 	}
 
 	public int getEntityId() {

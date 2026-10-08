@@ -109,9 +109,9 @@ public class AbilityHelper {
 		return origin instanceof Player
 				&& !isDefaultEnemy(target);
 		// &&
-		// (!DungeonsLibrariesConfig.ENEMY_WHITELIST.get().contains(ForgeRegistries.ENTITY_TYPES.getKey(target.getType()).toString())
+		// (!DungeonsLibrariesConfig.ENEMY_WHITELIST.get().contains(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(target.getType()).toString())
 		// ||
-		// (DungeonsLibrariesConfig.ENEMY_BLACKLIST.get().contains(ForgeRegistries.ENTITY_TYPES.getKey(target.getType()).toString())));
+		// (DungeonsLibrariesConfig.ENEMY_BLACKLIST.get().contains(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(target.getType()).toString())));
 	}
 
 	private static boolean isAliveAndCanBeSeen(LivingEntity nearbyEntity, LivingEntity attacker) {

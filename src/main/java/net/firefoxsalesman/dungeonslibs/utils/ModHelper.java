@@ -1,6 +1,6 @@
 package net.firefoxsalesman.dungeonslibs.utils;
 
-import net.minecraftforge.fml.ModList;
+import net.neoforged.fml.ModList;
 
 public class ModHelper {
 	/**

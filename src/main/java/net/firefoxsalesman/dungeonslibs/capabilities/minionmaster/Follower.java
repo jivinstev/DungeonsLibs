@@ -1,6 +1,7 @@
 package net.firefoxsalesman.dungeonslibs.capabilities.minionmaster;
 
 import net.firefoxsalesman.dungeonslibs.DungeonsLibs;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
@@ -10,13 +11,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.server.ServerLifecycleHooks;
+import net.neoforged.neoforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
-
-import static net.firefoxsalesman.dungeonslibs.capabilities.LibCapabilities.FOLLOWER_CAPABILITY;
 
 public class Follower implements INBTSerializable<CompoundTag>, Minion {
 
@@ -122,10 +121,8 @@ public class Follower implements INBTSerializable<CompoundTag>, Minion {
 
 	@Nullable
 	@Override
-	public CompoundTag serializeNBT() {
-		if (FOLLOWER_CAPABILITY == null) {
-			return new CompoundTag();
-		}
+	public CompoundTag serializeNBT(HolderLookup.Provider provider) {
+
 		CompoundTag tag = new CompoundTag();
 		if (this.getLeader() != null) {
 			tag.putUUID(LEADER_KEY, this.leaderUUID);
@@ -140,12 +137,12 @@ public class Follower implements INBTSerializable<CompoundTag>, Minion {
 	}
 
 	@Override
-	public void deserializeNBT(CompoundTag tag) {
+	public void deserializeNBT(HolderLookup.Provider provider, CompoundTag tag) {
 		if (tag.hasUUID(LEADER_KEY)) {
 			this.setLeaderUUID(tag.getUUID(LEADER_KEY));
 		}
 		if (tag.contains(LEVEL_KEY)) {
-			this.setLevelOnLoad(new ResourceLocation(tag.getString(LEVEL_KEY)));
+			this.setLevelOnLoad(ResourceLocation.parse(tag.getString(LEVEL_KEY)));
 		}
 		if (tag.contains(SUMMON_FLAG_KEY)) {
 			this.setSummon(tag.getBoolean(SUMMON_FLAG_KEY));

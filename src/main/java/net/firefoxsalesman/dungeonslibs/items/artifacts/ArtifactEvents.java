@@ -6,17 +6,17 @@ import net.firefoxsalesman.dungeonslibs.capabilities.artifact.ArtifactUsageHelpe
 import net.firefoxsalesman.dungeonslibs.integration.curios.CuriosIntegration;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import top.theillusivec4.curios.api.CuriosApi;
 import top.theillusivec4.curios.api.event.CurioChangeEvent;
 import top.theillusivec4.curios.api.type.inventory.ICurioStacksHandler;
 
 import java.util.Optional;
 
-@Mod.EventBusSubscriber(modid = DungeonsLibs.MOD_ID)
+@EventBusSubscriber(modid = DungeonsLibs.MOD_ID)
 public class ArtifactEvents {
 	@SubscribeEvent
 	public static void onCurioChange(CurioChangeEvent event) {
@@ -42,13 +42,10 @@ public class ArtifactEvents {
 	}
 
 	@SubscribeEvent
-	public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-		if (event.phase != TickEvent.Phase.END) {
-			return;
-		}
-		ArtifactUsage cap = ArtifactUsageHelper.getArtifactUsageCapability(event.player);
+	public static void onPlayerTick(PlayerTickEvent.Post event) {
+		ArtifactUsage cap = ArtifactUsageHelper.getArtifactUsageCapability(event.getEntity());
 		if (cap.isUsingArtifact() && cap.getUsingArtifact().getItem() instanceof ArtifactItem) {
-			cap.getUsingArtifact().getItem().onUseTick(event.player.level(), event.player,
+			cap.getUsingArtifact().getItem().onUseTick(event.getEntity().level(), event.getEntity(),
 					cap.getUsingArtifact(), cap.getUsingArtifactRemaining());
 			cap.setUsingArtifactRemaining(cap.getUsingArtifactRemaining() - 1);
 		}

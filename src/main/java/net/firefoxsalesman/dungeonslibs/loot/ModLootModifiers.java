@@ -1,19 +1,19 @@
 package net.firefoxsalesman.dungeonslibs.loot;
 
-import net.minecraftforge.common.loot.IGlobalLootModifier;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.common.loot.IGlobalLootModifier;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
+import java.util.function.Supplier;
 
 import static net.firefoxsalesman.dungeonslibs.DungeonsLibs.MOD_ID;
 
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 
 public class ModLootModifiers {
-	public static DeferredRegister<Codec<? extends IGlobalLootModifier>> LOOT_MODIFIER_SERIALIZERS = DeferredRegister
-			.create(ForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS, MOD_ID);
-	public static final RegistryObject<Codec<? extends IGlobalLootModifier>> LOOTTABLE = LOOT_MODIFIER_SERIALIZERS
+	public static DeferredRegister<MapCodec<? extends IGlobalLootModifier>> LOOT_MODIFIER_SERIALIZERS = DeferredRegister
+			.create(NeoForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS, MOD_ID);
+	public static final Supplier<MapCodec<? extends IGlobalLootModifier>> LOOTTABLE = LOOT_MODIFIER_SERIALIZERS
 			.register("loottable", LoottableModifier.CODEC);
 
 	public static void register(IEventBus eventBus) {

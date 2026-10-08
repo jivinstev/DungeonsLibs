@@ -1,19 +1,26 @@
 package net.firefoxsalesman.dungeonslibs.items.gearconfig;
 
+import net.minecraft.core.registries.BuiltInRegistries;
+
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraftforge.registries.ForgeRegistries;
-
-import java.util.UUID;
 
 public class GearConfigAttributeModifier {
 
+	private static DataResult<AttributeModifier.Operation> operationFromId(int id) {
+		AttributeModifier.Operation[] operations = AttributeModifier.Operation.values();
+		if (id < 0 || id >= operations.length) {
+			return DataResult.error(() -> "Unknown attribute modifier operation: " + id);
+		}
+		return DataResult.success(operations[id]);
+	}
+
 	public static final Codec<AttributeModifier.Operation> ATTRIBUTE_MODIFIER_OPERATION_CODEC = Codec.INT
-			.flatComapMap(AttributeModifier.Operation::fromValue, d -> DataResult.success(d.toValue()));
+			.flatXmap(GearConfigAttributeModifier::operationFromId, d -> DataResult.success(d.ordinal()));
 
 	public static final Codec<GearConfigAttributeModifier> CODEC = RecordCodecBuilder.create(instance -> instance
 			.group(
@@ -48,11 +55,11 @@ public class GearConfigAttributeModifier {
 		return operation;
 	}
 
-	public AttributeModifier toAttributeModifier(UUID uuid, String name) {
-		return new AttributeModifier(uuid, name, amount, operation);
+	public AttributeModifier toAttributeModifier(ResourceLocation id) {
+		return new AttributeModifier(id, amount, operation);
 	}
 
 	public Attribute getAttribute() {
-		return ForgeRegistries.ATTRIBUTES.getValue(attributeResourceLocation);
+		return BuiltInRegistries.ATTRIBUTE.get(attributeResourceLocation);
 	}
 }

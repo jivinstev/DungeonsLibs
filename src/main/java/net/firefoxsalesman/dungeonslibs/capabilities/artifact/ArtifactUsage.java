@@ -1,9 +1,11 @@
 package net.firefoxsalesman.dungeonslibs.capabilities.artifact;
 
 import net.firefoxsalesman.dungeonslibs.items.artifacts.ArtifactItem;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.common.util.INBTSerializable;
 
 public class ArtifactUsage implements INBTSerializable<CompoundTag> {
 
@@ -18,11 +20,11 @@ public class ArtifactUsage implements INBTSerializable<CompoundTag> {
 		return usingArtifact != null && itemStack != null && itemStack.equals(usingArtifact);
 	}
 
-	public boolean startUsingArtifact(ItemStack itemStack) {
+	public boolean startUsingArtifact(ItemStack itemStack, LivingEntity entity) {
 		if (usingArtifact != null || !(itemStack.getItem() instanceof ArtifactItem))
 			return false;
 		usingArtifact = itemStack;
-		usingArtifactRemaining = itemStack.getItem().getUseDuration(itemStack);
+		usingArtifactRemaining = itemStack.getUseDuration(entity);
 		return true;
 	}
 
@@ -45,12 +47,12 @@ public class ArtifactUsage implements INBTSerializable<CompoundTag> {
 	}
 
 	@Override
-	public CompoundTag serializeNBT() {
+	public CompoundTag serializeNBT(HolderLookup.Provider provider) {
 		CompoundTag tag = new CompoundTag();
 		return tag;
 	}
 
 	@Override
-	public void deserializeNBT(CompoundTag tag) {
+	public void deserializeNBT(HolderLookup.Provider provider, CompoundTag tag) {
 	}
 }

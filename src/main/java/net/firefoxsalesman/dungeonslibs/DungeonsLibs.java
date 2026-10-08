@@ -20,16 +20,15 @@ import net.firefoxsalesman.dungeonslibs.items.gearconfig.MeleeGearConfigRegistry
 import net.firefoxsalesman.dungeonslibs.items.materials.armor.DungeonsArmorMaterials;
 import net.firefoxsalesman.dungeonslibs.items.materials.weapon.WeaponMaterials;
 import net.firefoxsalesman.dungeonslibs.loot.ModLootModifiers;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.server.ServerStartingEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig.Type;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.config.ModConfig.Type;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(DungeonsLibs.MOD_ID)
@@ -39,13 +38,11 @@ public class DungeonsLibs {
 	// Directly reference a slf4j logger
 	public static final Logger LOGGER = LogUtils.getLogger();
 
-	public DungeonsLibs() {
-		ModLoadingContext.get().registerConfig(Type.COMMON, DungeonsLibrariesConfig.COMMON_SPEC,
+	public DungeonsLibs(IEventBus modEventBus, ModContainer modContainer) {
+		modContainer.registerConfig(Type.COMMON, DungeonsLibrariesConfig.COMMON_SPEC,
 				"dungeons-lib-common.toml");
-		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
-		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
+		modEventBus.addListener(this::doClientStuff);
 
-		IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 		ItemTagWrappers.init();
 		AttributeRegistry.register(modEventBus);
 		LibEntityTypes.register(modEventBus);
@@ -60,14 +57,11 @@ public class DungeonsLibs {
 		DungeonsArmorMaterials.subscribe();
 		ArtifactGearConfigRegistry.subscribe();
 
-		LibCapabilities.setupCapabilities();
+		LibCapabilities.setupCapabilities(modEventBus);
 
 		ModLootModifiers.register(modEventBus);
 		ParticleInit.register(modEventBus);
-	}
-
-	private void setup(final FMLCommonSetupEvent event) {
-		event.enqueueWork(NetworkHandler::init);
+		NetworkHandler.init(modEventBus);
 	}
 
 	// You can use SubscribeEvent and let the Event Bus discover methods to call
@@ -81,7 +75,7 @@ public class DungeonsLibs {
 
 	// You can use EventBusSubscriber to automatically register all static methods
 	// in the class annotated with @SubscribeEvent
-	@Mod.EventBusSubscriber(modid = MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+	@EventBusSubscriber(modid = MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 	public static class ClientModEvents {
 		@SubscribeEvent
 		public static void onClientSetup(FMLClientSetupEvent event) {

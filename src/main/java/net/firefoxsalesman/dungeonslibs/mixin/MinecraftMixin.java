@@ -1,7 +1,7 @@
 package net.firefoxsalesman.dungeonslibs.mixin;
 
 import net.firefoxsalesman.dungeonslibs.network.SwitchHandMessage;
-import net.firefoxsalesman.dungeonslibs.network.NetworkHandler;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,15 +18,15 @@ public class MinecraftMixin {
 		SHOULD_SWITCH_HAND = true;
 	}
 
-	@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraftforge/common/ForgeHooks;onEmptyLeftClick(Lnet/minecraft/world/entity/player/Player;)V", remap = false), method = "Lnet/minecraft/client/Minecraft;startAttack()Z")
+	@Inject(at = @At(value = "INVOKE", target = "Lnet/neoforged/neoforge/common/CommonHooks;onEmptyLeftClick(Lnet/minecraft/world/entity/player/Player;)V", remap = false), method = "Lnet/minecraft/client/Minecraft;startAttack()Z")
 	private void dungeons_libraries_startAttack_onMiss(CallbackInfoReturnable<Boolean> cir) {
 		SHOULD_SWITCH_HAND = true;
 	}
 
-	@Inject(at = @At(value = "INVOKE", target = "Lnet/minecraftforge/client/event/InputEvent$InteractionKeyMappingTriggered;shouldSwingHand()Z"), method = "Lnet/minecraft/client/Minecraft;startAttack()Z")
+	@Inject(at = @At(value = "INVOKE", target = "Lnet/neoforged/neoforge/client/event/InputEvent$InteractionKeyMappingTriggered;shouldSwingHand()Z"), method = "Lnet/minecraft/client/Minecraft;startAttack()Z")
 	private void dungeons_libraries_startAttack_onSwing(CallbackInfoReturnable<Boolean> cir) {
 		if (SHOULD_SWITCH_HAND) {
-			NetworkHandler.INSTANCE.sendToServer(new SwitchHandMessage());
+			PacketDistributor.sendToServer(new SwitchHandMessage());
 			SHOULD_SWITCH_HAND = false;
 		}
 	}

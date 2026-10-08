@@ -11,7 +11,11 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.crafting.Ingredient;
 
-import static net.minecraftforge.registries.ForgeRegistries.ITEMS;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
 
 public class DungeonsWeaponMaterial implements Tier {
 
@@ -49,8 +53,8 @@ public class DungeonsWeaponMaterial implements Tier {
 		this.durability = durability;
 		this.enchantability = enchantability;
 		this.repairItemResourceLocation = repairItemResourceLocation;
-		if (ITEMS.containsKey(repairItemResourceLocation)) {
-			Item item = ITEMS.getValue(repairItemResourceLocation);
+		if (BuiltInRegistries.ITEM.containsKey(repairItemResourceLocation)) {
+			Item item = BuiltInRegistries.ITEM.get(repairItemResourceLocation);
 			repairItem = Ingredient.of(item);
 		} else {
 			repairItem = Ingredient.of(Items.IRON_INGOT);
@@ -83,6 +87,16 @@ public class DungeonsWeaponMaterial implements Tier {
 	}
 
 	@Override
+	public TagKey<Block> getIncorrectBlocksForDrops() {
+		return switch (level) {
+			case 0 -> BlockTags.INCORRECT_FOR_WOODEN_TOOL;
+			case 1 -> BlockTags.INCORRECT_FOR_STONE_TOOL;
+			case 2 -> BlockTags.INCORRECT_FOR_IRON_TOOL;
+			default -> BlockTags.INCORRECT_FOR_DIAMOND_TOOL;
+		};
+	}
+
+	@Override
 	public Ingredient getRepairIngredient() {
 		return repairItem;
 	}
@@ -97,7 +111,6 @@ public class DungeonsWeaponMaterial implements Tier {
 		return attackDamageBonus;
 	}
 
-	@Override
 	public int getLevel() {
 		return level;
 	}

@@ -11,14 +11,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.level.GameType;
-import net.minecraftforge.client.gui.overlay.ForgeGui;
-import net.minecraftforge.client.gui.overlay.IGuiOverlay;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.gui.LayeredDraw;
 
 /**
  * Borrowed from Goety. Many thanks to Polarice
  */
 public class SoulEnergyGui {
-	public static final IGuiOverlay OVERLAY = SoulEnergyGui::drawHUD;
+	public static final LayeredDraw.Layer OVERLAY = SoulEnergyGui::drawHUD;
 	private static final Minecraft minecraft = Minecraft.getInstance();
 
 	public static boolean shouldDisplayBar() {
@@ -31,8 +31,10 @@ public class SoulEnergyGui {
 		return minecraft.font;
 	}
 
-	public static void drawHUD(ForgeGui gui, GuiGraphics guiGraphics, float partialTicks, int screenWidth,
-			int screenHeight) {
+	public static void drawHUD(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+		float partialTicks = deltaTracker.getGameTimeDeltaPartialTick(false);
+		int screenWidth = guiGraphics.guiWidth();
+		int screenHeight = guiGraphics.guiHeight();
 		if (!shouldDisplayBar()) {
 			return;
 		}

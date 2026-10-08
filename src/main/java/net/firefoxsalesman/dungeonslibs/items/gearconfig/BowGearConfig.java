@@ -4,6 +4,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
+import net.firefoxsalesman.dungeonslibs.data.Codecs;
+import net.firefoxsalesman.dungeonslibs.data.EnchantmentData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +22,7 @@ public class BowGearConfig {
 			GearConfigAttributeModifier.CODEC.listOf().optionalFieldOf("attributes", new ArrayList<>())
 					.forGetter(BowGearConfig::getAttributes),
 			ENCHANTMENT_DATA_CODEC.listOf().optionalFieldOf("built_in_enchantments", new ArrayList<>())
-					.forGetter(BowGearConfig::getBuiltInEnchantments),
+					.forGetter(BowGearConfig::getBuiltInEnchantmentData),
 			Codec.INT.optionalFieldOf("durability", 384).forGetter(BowGearConfig::getDurability),
 			Codec.FLOAT.optionalFieldOf("default_charge_time", 20.0F)
 					.forGetter(BowGearConfig::getDefaultChargeTime),
@@ -29,14 +31,14 @@ public class BowGearConfig {
 			.apply(instance, BowGearConfig::new));
 
 	private final List<GearConfigAttributeModifier> attributes;
-	private final List<EnchantmentInstance> builtInEnchantments;
+	private final List<EnchantmentData> builtInEnchantments;
 	private final int durability;
 	private final float defaultChargeTime;
 	private final boolean unique;
 	private final Rarity rarity;
 
 	public BowGearConfig(List<GearConfigAttributeModifier> attributes,
-			List<EnchantmentInstance> builtInEnchantments, int durability, float defaultChargeTime,
+			List<EnchantmentData> builtInEnchantments, int durability, float defaultChargeTime,
 			boolean unique, Rarity rarity) {
 		this.attributes = attributes;
 		this.builtInEnchantments = builtInEnchantments;
@@ -50,8 +52,12 @@ public class BowGearConfig {
 		return attributes;
 	}
 
-	public List<EnchantmentInstance> getBuiltInEnchantments() {
+	public List<EnchantmentData> getBuiltInEnchantmentData() {
 		return builtInEnchantments;
+	}
+
+	public List<EnchantmentInstance> getBuiltInEnchantments() {
+		return Codecs.resolveEnchantments(builtInEnchantments);
 	}
 
 	public int getDurability() {

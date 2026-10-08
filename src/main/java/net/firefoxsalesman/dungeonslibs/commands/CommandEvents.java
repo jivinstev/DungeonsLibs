@@ -4,11 +4,11 @@ import com.mojang.brigadier.CommandDispatcher;
 
 import net.firefoxsalesman.dungeonslibs.DungeonsLibs;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 
-@Mod.EventBusSubscriber(modid = DungeonsLibs.MOD_ID)
+@EventBusSubscriber(modid = DungeonsLibs.MOD_ID)
 public class CommandEvents {
 	@SubscribeEvent
 	public static void onRegisterCommandEvent(RegisterCommandsEvent event) {

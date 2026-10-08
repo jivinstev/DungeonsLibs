@@ -18,12 +18,9 @@ public class SummonSpotRenderer extends ProjectileRenderer<SummonSpotEntity> {
 	}
 
 	@Override
-	public void preRender(PoseStack poseStack, SummonSpotEntity animatable, BakedGeoModel model,
-			MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick,
-			int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
+	public void preRender(PoseStack poseStack, SummonSpotEntity animatable, BakedGeoModel model, MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender, float partialTick, int packedLight, int packedOverlay, int colour) {
 		super.preRender(poseStack, animatable, model, bufferSource, buffer, isReRender, partialTick,
-				packedLight, packedOverlay,
-				red, green, blue, alpha);
+				packedLight, packedOverlay, colour);
 		if (animatable.lifeTime <= 1) {
 			float scaleFactor = 0.0F;
 			poseStack.scale(scaleFactor, scaleFactor, scaleFactor);

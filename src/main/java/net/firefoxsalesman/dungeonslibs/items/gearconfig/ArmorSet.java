@@ -2,17 +2,17 @@ package net.firefoxsalesman.dungeonslibs.items.gearconfig;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-import net.minecraftforge.registries.RegistryObject;
+import java.util.function.Supplier;
 
 public class ArmorSet {
 	private final ResourceLocation registryName;
-	private final RegistryObject<Item> head;
-	private final RegistryObject<Item> chest;
-	private final RegistryObject<Item> legs;
-	private final RegistryObject<Item> feet;
+	private final Supplier<Item> head;
+	private final Supplier<Item> chest;
+	private final Supplier<Item> legs;
+	private final Supplier<Item> feet;
 
-	public ArmorSet(ResourceLocation registryName, RegistryObject<Item> head, RegistryObject<Item> chest,
-			RegistryObject<Item> legs, RegistryObject<Item> feet) {
+	public ArmorSet(ResourceLocation registryName, Supplier<Item> head, Supplier<Item> chest,
+			Supplier<Item> legs, Supplier<Item> feet) {
 		this.registryName = registryName;
 		this.head = head;
 		this.chest = chest;
@@ -24,19 +24,19 @@ public class ArmorSet {
 		return registryName;
 	}
 
-	public RegistryObject<Item> getHead() {
+	public Supplier<Item> getHead() {
 		return head;
 	}
 
-	public RegistryObject<Item> getChest() {
+	public Supplier<Item> getChest() {
 		return chest;
 	}
 
-	public RegistryObject<Item> getLegs() {
+	public Supplier<Item> getLegs() {
 		return legs;
 	}
 
-	public RegistryObject<Item> getFeet() {
+	public Supplier<Item> getFeet() {
 		return feet;
 	}
 }

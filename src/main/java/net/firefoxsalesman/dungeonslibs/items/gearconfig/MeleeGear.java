@@ -1,48 +1,48 @@
 package net.firefoxsalesman.dungeonslibs.items.gearconfig;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import net.firefoxsalesman.dungeonslibs.items.interfaces.IComboWeapon;
 import net.firefoxsalesman.dungeonslibs.items.interfaces.IMeleeWeapon;
 import net.firefoxsalesman.dungeonslibs.items.interfaces.IReloadableGear;
 import net.firefoxsalesman.dungeonslibs.items.interfaces.IUniqueGear;
 import net.firefoxsalesman.dungeonslibs.utils.DescriptionHelper;
-import net.firefoxsalesman.dungeonslibs.utils.MojankHelper;
-import net.firefoxsalesman.dungeonslibs.mixin.ItemAccessor;
+import net.firefoxsalesman.dungeonslibs.mixin.ItemMaxDamage;
 import net.firefoxsalesman.dungeonslibs.mixin.TieredItemAccessor;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentCategory;
+
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
 
-import static java.util.UUID.randomUUID;
 import static net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE;
 import static net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_SPEED;
-import static net.minecraftforge.registries.ForgeRegistries.ATTRIBUTES;
 
 public class MeleeGear extends TieredItem
-		implements IMeleeWeapon, IComboWeapon, Vanishable, IReloadableGear, IUniqueGear {
+		implements IMeleeWeapon, IComboWeapon, IReloadableGear, IUniqueGear {
 
-	private Multimap<Attribute, AttributeModifier> defaultModifiers;
+	private ItemAttributeModifiers defaultModifiers;
 	private MeleeGearConfig meleeGearConfig;
 	private float attackDamage;
 
@@ -53,23 +53,20 @@ public class MeleeGear extends TieredItem
 
 	@Override
 	public void reload() {
-		meleeGearConfig = MeleeGearConfigRegistry.getConfig(ForgeRegistries.ITEMS.getKey(this));
+		meleeGearConfig = MeleeGearConfigRegistry.getConfig(BuiltInRegistries.ITEM.getKey(this));
 		((TieredItemAccessor) this).setTier(meleeGearConfig.getWeaponMaterial());
-		((ItemAccessor) this).setMaxDamage(getTier().getUses());
-		ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
+		ItemMaxDamage.setMaxDamage(this, getTier().getUses());
+		ItemMaxDamage.setRarity(this, meleeGearConfig.getRarity());
+		ItemAttributeModifiers.Builder builder = ItemAttributeModifiers.builder();
 		meleeGearConfig.getAttributes().forEach(attributeModifier -> {
-			Attribute attribute = ATTRIBUTES.getValue(attributeModifier.getAttributeResourceLocation());
-			if (attribute != null) {
-				UUID uuid = randomUUID();
-				if (ATTACK_DAMAGE.equals(attribute)) {
-					uuid = BASE_ATTACK_DAMAGE_UUID;
+			Optional<Holder.Reference<Attribute>> attribute = BuiltInRegistries.ATTRIBUTE.getHolder(attributeModifier.getAttributeResourceLocation());
+			if (attribute.isPresent()) {
+				if (ATTACK_DAMAGE.equals(attribute.get())) {
 					attackDamage = (float) attributeModifier.getAmount()
 							+ getTier().getAttackDamageBonus();
-				} else if (ATTACK_SPEED.equals(attribute)) {
-					uuid = BASE_ATTACK_SPEED_UUID;
 				}
-				builder.put(attribute, new AttributeModifier(uuid, "Weapon modifier",
-						attributeModifier.getAmount(), attributeModifier.getOperation()));
+				builder.add(attribute.get(), new AttributeModifier(ResourceLocation.fromNamespaceAndPath("dungeonslibs", "weapon_modifier"),
+						attributeModifier.getAmount(), attributeModifier.getOperation()), EquipmentSlotGroup.MAINHAND);
 			}
 		});
 		defaultModifiers = builder.build();
@@ -90,14 +87,13 @@ public class MeleeGear extends TieredItem
 	}
 
 	@Override
-	public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot pEquipmentSlot) {
-		return pEquipmentSlot == EquipmentSlot.MAINHAND ? defaultModifiers
-				: super.getDefaultAttributeModifiers(pEquipmentSlot);
+	public ItemAttributeModifiers getDefaultAttributeModifiers() {
+		return defaultModifiers;
 	}
 
 	@OnlyIn(Dist.CLIENT)
 	@Override
-	public void appendHoverText(ItemStack stack, Level world, List<Component> list, TooltipFlag flag) {
+	public void appendHoverText(ItemStack stack, Item.TooltipContext world, List<Component> list, TooltipFlag flag) {
 		super.appendHoverText(stack, world, list, flag);
 		DescriptionHelper.addFullDescription(list, stack);
 	}
@@ -109,7 +105,7 @@ public class MeleeGear extends TieredItem
 
 	@Override
 	public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-		stack.hurtAndBreak(1, attacker, MojankHelper::hurtEnemyBroadcastBreakEvent);
+		stack.hurtAndBreak(1, attacker, EquipmentSlot.MAINHAND);
 		return true;
 	}
 
@@ -125,14 +121,14 @@ public class MeleeGear extends TieredItem
 	public boolean mineBlock(ItemStack itemStack, Level level, BlockState blockState, BlockPos blockPos,
 			LivingEntity livingEntity) {
 		if (blockState.getDestroySpeed(level, blockPos) != 0.0F) {
-			itemStack.hurtAndBreak(1, livingEntity, MojankHelper::hurtEnemyBroadcastBreakEvent);
+			itemStack.hurtAndBreak(1, livingEntity, EquipmentSlot.MAINHAND);
 		}
 
 		return true;
 	}
 
 	@Override
-	public boolean isCorrectToolForDrops(BlockState p_150897_1_) {
+	public boolean isCorrectToolForDrops(ItemStack stack, BlockState p_150897_1_) {
 		return p_150897_1_.is(Blocks.COBWEB) || p_150897_1_.is(BlockTags.LEAVES);
 	}
 
@@ -153,13 +149,8 @@ public class MeleeGear extends TieredItem
 	}
 
 	@Override
-	public Rarity getRarity(ItemStack pStack) {
-		return getGearConfig().getRarity();
-	}
-
-	@Override
-	public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
-		return super.canApplyAtEnchantingTable(stack, enchantment)
-				|| enchantment.category == EnchantmentCategory.WEAPON;
+	public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
+		return super.supportsEnchantment(stack, enchantment)
+				|| enchantment.value().definition().supportedItems().contains(stack.getItemHolder());
 	}
 }

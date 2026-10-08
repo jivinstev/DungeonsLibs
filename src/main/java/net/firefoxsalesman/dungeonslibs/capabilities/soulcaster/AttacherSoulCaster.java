@@ -1,50 +1,44 @@
 package net.firefoxsalesman.dungeonslibs.capabilities.soulcaster;
 
-import org.jetbrains.annotations.NotNull;
+import java.util.Optional;
 
-import net.firefoxsalesman.dungeonslibs.capabilities.LibCapabilities;
-import net.firefoxsalesman.dungeonslibs.utils.ResourceLocationHelper;
-import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.attachment.IAttachmentHolder;
+import net.neoforged.neoforge.attachment.IAttachmentSerializer;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 public class AttacherSoulCaster {
 
-	private static class SoulCasterProvider implements ICapabilityProvider, INBTSerializable<CompoundTag> {
+	public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES =
+			DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, "dungeonslibs");
 
-		public static final ResourceLocation IDENTIFIER = ResourceLocationHelper.modLoc("soul_caster");
-		private final SoulCaster backend = new SoulCaster();
-		private final LazyOptional<SoulCaster> optionalData = LazyOptional.of(() -> backend);
+	public static final DeferredHolder<AttachmentType<?>, AttachmentType<SoulCaster>> SOUL_CASTER =
+			ATTACHMENT_TYPES.register("soul_caster", () -> AttachmentType.builder(holder -> new SoulCaster())
+					.serialize(new IAttachmentSerializer<CompoundTag, SoulCaster>() {
+						@Override
+						public SoulCaster read(IAttachmentHolder holder, CompoundTag tag, HolderLookup.Provider provider) {
+							SoulCaster caster = new SoulCaster();
+							caster.deserializeNBT(provider, tag);
+							return caster;
+						}
 
-		@Override
-		public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, Direction side) {
-			return LibCapabilities.SOUL_CASTER_CAPABILITY.orEmpty(cap, this.optionalData);
+						@Override
+						public CompoundTag write(SoulCaster attachment, HolderLookup.Provider provider) {
+							return attachment.serializeNBT(provider);
+						}
+					})
+					.build());
+
+	// only living entities carry the soul caster
+	public static Optional<SoulCaster> get(Object holder) {
+		if (holder instanceof LivingEntity living) {
+			return Optional.of(living.getData(SOUL_CASTER.get()));
 		}
-
-		@Override
-		public CompoundTag serializeNBT() {
-			return this.backend.serializeNBT();
-		}
-
-		@Override
-		public void deserializeNBT(CompoundTag nbt) {
-			this.backend.deserializeNBT(nbt);
-		}
-	}
-
-	// attach only to living entities
-	public static void attach(final AttachCapabilitiesEvent<Entity> event) {
-		Entity entity = event.getObject();
-		if (entity instanceof LivingEntity) {
-			final AttacherSoulCaster.SoulCasterProvider provider = new AttacherSoulCaster.SoulCasterProvider();
-			event.addCapability(AttacherSoulCaster.SoulCasterProvider.IDENTIFIER, provider);
-		}
+		return Optional.empty();
 	}
 }

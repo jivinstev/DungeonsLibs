@@ -1,50 +1,42 @@
 package net.firefoxsalesman.dungeonslibs.capabilities.minionmaster;
 
-import org.jetbrains.annotations.NotNull;
+import java.util.Optional;
 
-import net.firefoxsalesman.dungeonslibs.capabilities.LibCapabilities;
-import net.firefoxsalesman.dungeonslibs.utils.ResourceLocationHelper;
-import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.INBTSerializable;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.event.AttachCapabilitiesEvent;
+import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.attachment.IAttachmentHolder;
+import net.neoforged.neoforge.attachment.IAttachmentSerializer;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 public class AttacherFollower {
 
-	private static class FollowerProvider implements ICapabilityProvider, INBTSerializable<CompoundTag> {
+	public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES =
+			DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, "dungeonslibs");
 
-		public static final ResourceLocation IDENTIFIER = ResourceLocationHelper.modLoc("minion");
-		private final Follower backend = new Follower();
-		private final LazyOptional<Follower> optionalData = LazyOptional.of(() -> backend);
+	public static final DeferredHolder<AttachmentType<?>, AttachmentType<Follower>> FOLLOWER =
+			ATTACHMENT_TYPES.register("minion", () -> AttachmentType.builder(() -> new Follower())
+					.serialize(new IAttachmentSerializer<CompoundTag, Follower>() {
+						@Override
+						public Follower read(IAttachmentHolder holder, CompoundTag tag, HolderLookup.Provider provider) {
+							Follower follower = new Follower();
+							follower.deserializeNBT(provider, tag);
+							return follower;
+						}
 
-		@Override
-		public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, Direction side) {
-			return LibCapabilities.FOLLOWER_CAPABILITY.orEmpty(cap, this.optionalData);
-		}
+						@Override
+						public CompoundTag write(Follower follower, HolderLookup.Provider provider) {
+							return follower.serializeNBT(provider);
+						}
+					})
+					.build());
 
-		@Override
-		public CompoundTag serializeNBT() {
-			return this.backend.serializeNBT();
-		}
-
-		@Override
-		public void deserializeNBT(CompoundTag nbt) {
-			this.backend.deserializeNBT(nbt);
-		}
-	}
-
-	// attach only to living entities
-	public static void attach(final AttachCapabilitiesEvent<Entity> event) {
-		Entity entity = event.getObject();
-		if (entity instanceof LivingEntity) {
-			final FollowerProvider provider = new FollowerProvider();
-			event.addCapability(FollowerProvider.IDENTIFIER, provider);
-		}
+	// only living entities carry the follower data
+	public static Optional<Follower> get(Entity entity) {
+		return entity instanceof LivingEntity ? Optional.of(entity.getData(FOLLOWER)) : Optional.empty();
 	}
 }

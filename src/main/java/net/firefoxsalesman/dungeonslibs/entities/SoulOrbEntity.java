@@ -3,9 +3,6 @@ package net.firefoxsalesman.dungeonslibs.entities;
 import net.firefoxsalesman.dungeonslibs.capabilities.soulcaster.SoulCasterHelper;
 import net.firefoxsalesman.dungeonslibs.event.PlayerSoulEvent;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -14,13 +11,15 @@ import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.entity.IEntityAdditionalSpawnData;
-import net.minecraftforge.network.NetworkHooks;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.neoforged.neoforge.entity.IEntityWithComplexSpawn;
+import net.neoforged.neoforge.common.NeoForge;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public class SoulOrbEntity extends Entity implements IEntityAdditionalSpawnData {
+public class SoulOrbEntity extends Entity implements IEntityWithComplexSpawn {
 	public int tickCount;
 	public int age;
 	public int floatTime = 20;
@@ -49,7 +48,7 @@ public class SoulOrbEntity extends Entity implements IEntityAdditionalSpawnData 
 		return false;
 	}
 
-	protected void defineSynchedData() {
+	protected void defineSynchedData(SynchedEntityData.Builder builder) {
 	}
 
 	public void tick() {
@@ -151,8 +150,9 @@ public class SoulOrbEntity extends Entity implements IEntityAdditionalSpawnData 
 		if (!this.level().isClientSide) {
 			if (this.floatTime == 0) {
 				// Throw OrbEvent
-				if (net.minecraftforge.common.MinecraftForge.EVENT_BUS
-						.post(new PlayerSoulEvent.PickupSoul(player, this)))
+				PlayerSoulEvent.PickupSoul pickupEvent = NeoForge.EVENT_BUS
+						.post(new PlayerSoulEvent.PickupSoul(player, this));
+				if (pickupEvent.isCanceled())
 					return;
 
 				if (this.value > 0) {
@@ -184,25 +184,23 @@ public class SoulOrbEntity extends Entity implements IEntityAdditionalSpawnData 
 	}
 
 	@Override
-	public Packet<ClientGamePacketListener> getAddEntityPacket() {
-		return NetworkHooks.getEntitySpawningPacket(this);
-	}
-
-	@Override
-	public void writeSpawnData(FriendlyByteBuf buffer) {
+	public void writeSpawnData(RegistryFriendlyByteBuf buffer) {
 		buffer.writeInt(this.health);
 		buffer.writeInt(this.age);
 		buffer.writeFloat(this.value);
-		buffer.writeNullable(this.followingPlayer != null ? this.followingPlayer.getUUID() : null,
-				FriendlyByteBuf::writeUUID);
+		UUID followingUUID = this.followingPlayer != null ? this.followingPlayer.getUUID() : null;
+		buffer.writeBoolean(followingUUID != null);
+		if (followingUUID != null) {
+			buffer.writeUUID(followingUUID);
+		}
 	}
 
 	@Override
-	public void readSpawnData(FriendlyByteBuf additionalData) {
+	public void readSpawnData(RegistryFriendlyByteBuf additionalData) {
 		this.health = additionalData.readInt();
 		this.age = additionalData.readInt();
 		this.value = additionalData.readFloat();
-		UUID uuid = additionalData.readNullable(FriendlyByteBuf::readUUID);
+		UUID uuid = additionalData.readBoolean() ? additionalData.readUUID() : null;
 		if (uuid != null) {
 			Player playerByUUID = this.level().getPlayerByUUID(uuid);
 			if (playerByUUID != null) {

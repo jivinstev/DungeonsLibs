@@ -9,7 +9,7 @@ import java.util.Map;
 
 @Mixin(AxeItem.class)
 public interface AxeItemAccessor {
-	@Accessor
+	@Accessor("STRIPPABLES")
 	static Map<Block, Block> getSTRIPPABLES() {
 		throw new RuntimeException("Accessor failed to mixin");
 	}

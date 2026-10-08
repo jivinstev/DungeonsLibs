@@ -8,6 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
+import net.firefoxsalesman.dungeonslibs.data.EnchantmentData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,13 +19,13 @@ import static net.firefoxsalesman.dungeonslibs.data.Codecs.ITEM_RARITY_CODEC;
 public class MeleeGearConfig {
 
 	public static final MeleeGearConfig DEFAULT = new MeleeGearConfig(new ArrayList<>(), new ArrayList<>(),
-			new ResourceLocation("minecraft:iron"), false, false, false, false, Rarity.COMMON, 1);
+			ResourceLocation.parse("minecraft:iron"), false, false, false, false, Rarity.COMMON, 1);
 
 	public static final Codec<MeleeGearConfig> CODEC = RecordCodecBuilder.create(instance -> instance.group(
 			GearConfigAttributeModifier.CODEC.listOf().optionalFieldOf("attributes", new ArrayList<>())
 					.forGetter(MeleeGearConfig::getAttributes),
 			ENCHANTMENT_DATA_CODEC.listOf().optionalFieldOf("built_in_enchantments", new ArrayList<>())
-					.forGetter(MeleeGearConfig::getBuiltInEnchantments),
+					.forGetter(MeleeGearConfig::getBuiltInEnchantmentData),
 			ResourceLocation.CODEC.fieldOf("material")
 					.forGetter(armorGearConfig -> armorGearConfig.materialResource),
 			Codec.BOOL.optionalFieldOf("disables_shield", false)
@@ -37,7 +38,7 @@ public class MeleeGearConfig {
 			.apply(instance, MeleeGearConfig::new));
 
 	private final List<GearConfigAttributeModifier> attributes;
-	private final List<EnchantmentInstance> builtInEnchantments;
+	private final List<EnchantmentData> builtInEnchantments;
 	private final ResourceLocation materialResource;
 	private final boolean disablesShield;
 	private final boolean light;
@@ -47,7 +48,7 @@ public class MeleeGearConfig {
 	private final int comboLength;
 
 	public MeleeGearConfig(List<GearConfigAttributeModifier> attributes,
-			List<EnchantmentInstance> builtInEnchantments, ResourceLocation materialResource,
+			List<EnchantmentData> builtInEnchantments, ResourceLocation materialResource,
 			boolean disablesShield, boolean light, boolean twoHanded, boolean unique, Rarity rarity,
 			int comboLength) {
 		this.attributes = attributes;
@@ -65,8 +66,12 @@ public class MeleeGearConfig {
 		return attributes;
 	}
 
-	public List<EnchantmentInstance> getBuiltInEnchantments() {
+	public List<EnchantmentData> getBuiltInEnchantmentData() {
 		return builtInEnchantments;
+	}
+
+	public List<EnchantmentInstance> getBuiltInEnchantments() {
+		return net.firefoxsalesman.dungeonslibs.data.Codecs.resolveEnchantments(builtInEnchantments);
 	}
 
 	public ResourceLocation getMaterialResource() {
