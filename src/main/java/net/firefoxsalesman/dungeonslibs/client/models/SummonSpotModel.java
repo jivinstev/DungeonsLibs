@@ -40,9 +40,10 @@ public class SummonSpotModel<T extends SummonSpotEntity> extends GeoModel<T> {
 
 	@Override
 	public ResourceLocation getTextureResource(T entity) {
-		// TODO We don't actually have an illusioner_summon_spot texture
+		// There is no illusioner_summon_spot texture; type 0 (the default) borrows the necromancer's, which is
+		// drawn for this same model (a judgement call -- see the fork's issue)
 		if (entity.getSummonType() == 0) {
-			return modLoc("textures/entity/illusioner_summon_spot.png");
+			return modLoc("textures/entity/necromancer_summon_spot.png");
 		} else if (entity.getSummonType() == 1) {
 			return modLoc("textures/entity/wildfire_summon_spot.png");
 		} else if (entity.getSummonType() == 2) {
@@ -50,7 +51,7 @@ public class SummonSpotModel<T extends SummonSpotEntity> extends GeoModel<T> {
 		} else if (entity.getSummonType() == 3) {
 			return modLoc("textures/entity/mage_summon_spot.png");
 		} else {
-			return modLoc("textures/entity/illusioner_summon_spot.png");
+			return modLoc("textures/entity/necromancer_summon_spot.png");
 		}
 	}
 }
